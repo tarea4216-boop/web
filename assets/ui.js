@@ -18,7 +18,7 @@ export async function mountChrome(){
   if(conf?.color_primario){ document.documentElement.style.setProperty('--crema-500', conf.color_primario); }
   if(conf?.color_secundario){ document.documentElement.style.setProperty('--crema-700', conf.color_secundario); }
 
-  // Header
+  // Header con botón hamburguesa
   header.innerHTML = `
     <div class="topbar container">
       <div class="brand">
@@ -28,6 +28,11 @@ export async function mountChrome(){
           ${empresa?.horarios ? `<small class="muted">${empresa.horarios}</small>`:''}
         </div>
       </div>
+
+      <!-- Botón hamburguesa -->
+      <button class="menu-toggle" aria-label="Abrir menú">☰</button>
+
+      <!-- Menú de navegación -->
       <nav class="menu">
         <a href="index.html">Inicio</a>
         <a href="menu.html">Menú</a>
@@ -40,6 +45,13 @@ export async function mountChrome(){
       </nav>
     </div>
   `;
+
+  // Lógica para abrir/cerrar menú en móvil
+  const toggle = header.querySelector('.menu-toggle');
+  const nav = header.querySelector('.menu');
+  if(toggle && nav){
+    toggle.addEventListener('click', ()=> nav.classList.toggle('open'));
+  }
 
   // Footer
   footer.innerHTML = `
