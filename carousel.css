@@ -1,0 +1,196 @@
+/* === Contenedor principal del carrusel === */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 40px auto;
+  overflow: hidden;
+  padding: 10px 0;
+}
+
+/* === Pista del carrusel === */
+.carousel-track {
+  display: flex;
+  gap: 20px;
+  transition: transform 0.5s ease;
+}
+
+/* === Ítems del carrusel === */
+.carousel-item {
+  flex: 0 0 250px; /* valor base */
+  max-width: 250px;
+  text-align: center;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  transition: all 0.4s ease;
+}
+
+.carousel-item.active {
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+/* === Tarjeta de producto === */
+.carousel-item .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 1px solid #eee;
+}
+
+.carousel-item .body {
+  padding: 15px;
+  text-align: left;
+}
+
+.carousel-item .title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.carousel-item .muted {
+  font-size: 0.85rem;
+  color: #777;
+  margin-bottom: 8px;
+}
+
+.carousel-item .price {
+  font-weight: bold;
+  color: #d35400;
+  font-size: 1rem;
+}
+
+/* === Botones del carrusel === */
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.5);
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 50%;
+  transition: background 0.3s, transform 0.2s;
+  z-index: 5;
+}
+
+.carousel-btn:hover {
+  background: rgba(0,0,0,0.75);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-btn.prev { left: 10px; }
+.carousel-btn.next { right: 10px; }
+
+/* === Responsivo === */
+@media (max-width: 599px) {
+  .carousel-item {
+    flex: 0 0 90%;
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1023px) {
+  .carousel-item {
+    flex: 0 0 45%;
+    max-width: 45%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel-item {
+    flex: 0 0 30%;
+    max-width: 30%;
+  }
+}
+
+/* --- Forzar que cada sección del menú ocupe toda la fila del grid --- */
+#menuGrid > .category-section {
+  grid-column: 1 / -1; /* ocupa desde la primera hasta la última columna */
+  width: 100%;
+  padding: 10px 0;
+}
+
+/* Centrar y estilizar el título de categoría */
+.category-section > h2 {
+  text-align: center;
+  font-size: 1.25rem;
+  margin: 12px 0 8px;
+  color: #3f342c;
+}
+
+/* Evitar que las flechas tapen las tarjetas: añadir padding lateral al track */
+.carousel-container { padding: 10px 48px; }
+
+/* Asegurar que la pista estire los items a la misma altura */
+.carousel-track {
+  display: flex;
+  gap: 20px;
+  transition: transform 0.5s ease;
+  align-items: stretch; /* crucial para altura uniforme */
+}
+
+/* Forzar que cada item estire su tarjeta (.card) y que la body ocupe el espacio restante */
+.carousel-item {
+  flex: 0 0 250px;
+  max-width: 250px;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  transition: transform 0.3s ease;
+}
+
+.carousel-item .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Forzar que el cuerpo empuje el precio/botón al final */
+.carousel-item .body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Separar claramente la fila con precio/botón */
+.carousel-item .body .row {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Ajustes responsivos (puedes ajustar tamaños) */
+@media (max-width: 599px) {
+  .carousel-container { padding: 6px 16px; }
+  .carousel-item { flex: 0 0 90%; max-width: 90%; }
+}
+@media (min-width: 600px) and (max-width: 1023px) {
+  .carousel-item { flex: 0 0 45%; max-width: 45%; }
+}
+@media (min-width: 1024px) {
+  .carousel-item { flex: 0 0 30%; max-width: 30%; }
+}
+
+/* Ajuste visual de botones */
+.carousel-btn { font-size: 1.6rem; padding: 6px 10px; }
