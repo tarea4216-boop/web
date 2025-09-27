@@ -1,6 +1,7 @@
 // assets/index.js
 import { fetchAll } from './supabaseClient.js';
 import { mountChrome, formatMoney } from './ui.js';
+import Swiper from 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.mjs';
 
 async function loadHome() {
   await mountChrome();
