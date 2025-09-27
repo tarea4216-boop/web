@@ -295,8 +295,9 @@
 
 /* === Ocultar flechas en móvil === */
 @media (max-width: 599px) {
-  .carousel-btn {
+  .carousel-btn,
+  .carousel-btn.prev,
+  .carousel-btn.next {
     display: none !important;
   }
 }
-
