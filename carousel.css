@@ -1,43 +1,86 @@
-/* === Contenedor principal del carrusel === */
+/* === Forzar que cada categoría ocupe toda la fila del grid === */
+.category-section {
+  grid-column: 1 / -1 !important;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 0;
+}
+
+/* === Contenedor principal === */
 .carousel-container {
   position: relative;
   width: 100%;
-  max-width: 1200px;
-  margin: 40px auto;
+  margin: 32px 0;
   overflow: hidden;
-  padding: 10px 0;
+  padding: 10px 40px;  /* espacio lateral para flechas */
+  box-sizing: border-box;
 }
 
-/* === Pista del carrusel === */
+/* === Pista: fila única, sin wrap === */
 .carousel-track {
   display: flex;
-  gap: 20px;
-  transition: transform 0.5s ease;
+  gap: 22px;
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.5, 1);
+  align-items: stretch;
+  flex-wrap: nowrap;
+  will-change: transform;
+  padding-bottom: 6px;
+  justify-content: flex-start;
 }
 
-/* === Ítems del carrusel === */
+/* === Ítems === */
 .carousel-item {
-  flex: 0 0 250px; /* valor base */
-  max-width: 250px;
-  text-align: center;
+  flex: 0 0 auto;
+  min-width: 220px;
+  max-width: 360px;
+  width: calc((100% - 40px) / 3);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  transition: all 0.4s ease;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  transition: 
+    transform 0.35s ease, 
+    box-shadow 0.35s ease,
+    filter 0.35s ease;
+  cursor: grab;
+  overflow: hidden;
+  position: relative;
 }
 
+.carousel-item:active { cursor: grabbing; }
+
+/* Hover más llamativo */
+.carousel-item:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.18);
+  filter: brightness(1.03);
+}
+
+/* Presionar (clic o touch) -> efecto de "salir hacia arriba" */
+.carousel-item:active {
+  transform: scale(1.08);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.22);
+  z-index: 3;
+}
+
+/* Activo por el JS */
 .carousel-item.active {
   transform: scale(1.05);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18);
   z-index: 2;
 }
 
-/* === Tarjeta de producto === */
+/* === Tarjeta interna === */
 .carousel-item .card {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border-radius: 16px;
+  width: 100%;
+  border-radius: 18px;
   overflow: hidden;
+  background: #fff;
 }
 
 .carousel-item img {
@@ -45,152 +88,207 @@
   height: 200px;
   object-fit: cover;
   border-bottom: 1px solid #eee;
+  transition: transform 0.6s ease;
 }
 
+.carousel-item:hover img { transform: scale(1.12); }
+
 .carousel-item .body {
-  padding: 15px;
-  text-align: left;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .carousel-item .title {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  line-height: 1.3;
 }
 
 .carousel-item .muted {
-  font-size: 0.85rem;
-  color: #777;
-  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 10px;
 }
 
 .carousel-item .price {
-  font-weight: bold;
-  color: #d35400;
-  font-size: 1rem;
+  font-weight: 700;
+  color: #e67e22;
+  font-size: 1.05rem;
 }
 
-/* === Botones del carrusel === */
+/* === Botones === */
 .carousel-btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0,0,0,0.5);
+  background: linear-gradient(135deg, #e67e22, #d35400);
   border: none;
   color: #fff;
-  font-size: 2rem;
+  font-size: 1.6rem;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 12px 16px;
   border-radius: 50%;
-  transition: background 0.3s, transform 0.2s;
+  transition: background 0.3s, transform 0.25s ease, box-shadow 0.3s;
   z-index: 5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
 .carousel-btn:hover {
-  background: rgba(0,0,0,0.75);
-  transform: translateY(-50%) scale(1.1);
+  background: linear-gradient(135deg, #ff8c42, #e67e22);
+  transform: translateY(-50%) scale(1.15) rotate(2deg);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
 }
 
-.carousel-btn.prev { left: 10px; }
-.carousel-btn.next { right: 10px; }
+.carousel-btn.prev { left: 14px; }
+.carousel-btn.next { right: 14px; }
+
+/* === Indicadores opcionales (dots) === */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+  gap: 8px;
+}
+
+.carousel-dots button {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: #ccc;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.carousel-dots button.active {
+  background: #e67e22;
+  transform: scale(1.25);
+}
 
 /* === Responsivo === */
 @media (max-width: 599px) {
+  .carousel-container { padding: 6px 20px; }
   .carousel-item {
-    flex: 0 0 90%;
+    width: 85%;
+    min-width: 80%;
     max-width: 90%;
   }
+  .carousel-item img { height: 180px; }
 }
 
 @media (min-width: 600px) and (max-width: 1023px) {
   .carousel-item {
-    flex: 0 0 45%;
-    max-width: 45%;
+    width: calc((100% - 20px) / 2);
+    min-width: 45%;
+    max-width: 50%;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (max-width: 1199px) {
   .carousel-item {
-    flex: 0 0 30%;
-    max-width: 30%;
+    width: calc((100% - 40px) / 3);
+    min-width: 28%;
+    max-width: 32%;
   }
 }
 
-/* --- Forzar que cada sección del menú ocupe toda la fila del grid --- */
-#menuGrid > .category-section {
-  grid-column: 1 / -1; /* ocupa desde la primera hasta la última columna */
-  width: 100%;
-  padding: 10px 0;
+@media (min-width: 1200px) {
+  .carousel-item {
+    width: calc((100% - 60px) / 4);
+  }
 }
 
-/* Centrar y estilizar el título de categoría */
-.category-section > h2 {
-  text-align: center;
-  font-size: 1.25rem;
-  margin: 12px 0 8px;
-  color: #3f342c;
+
+/* === Selección visual === */
+.carousel-item.selected {
+  border: 3px solid #e67e22;
+  transform: scale(1.1);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
 }
 
-/* Evitar que las flechas tapen las tarjetas: añadir padding lateral al track */
-.carousel-container { padding: 10px 48px; }
-
-/* Asegurar que la pista estire los items a la misma altura */
-.carousel-track {
+.carousel-item.selected::after {
+  content: "✓";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #e67e22;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
   display: flex;
-  gap: 20px;
-  transition: transform 0.5s ease;
-  align-items: stretch; /* crucial para altura uniforme */
-}
-
-/* Forzar que cada item estire su tarjeta (.card) y que la body ocupe el espacio restante */
-.carousel-item {
-  flex: 0 0 250px;
-  max-width: 250px;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-  transition: transform 0.3s ease;
-}
-
-.carousel-item .card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-/* Forzar que el cuerpo empuje el precio/botón al final */
-.carousel-item .body {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-/* Separar claramente la fila con precio/botón */
-.carousel-item .body .row {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
 }
 
-/* Ajustes responsivos (puedes ajustar tamaños) */
-@media (max-width: 599px) {
-  .carousel-container { padding: 6px 16px; }
-  .carousel-item { flex: 0 0 90%; max-width: 90%; }
-}
-@media (min-width: 600px) and (max-width: 1023px) {
-  .carousel-item { flex: 0 0 45%; max-width: 45%; }
-}
-@media (min-width: 1024px) {
-  .carousel-item { flex: 0 0 30%; max-width: 30%; }
+/* === Modal === */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 
-/* Ajuste visual de botones */
-.carousel-btn { font-size: 1.6rem; padding: 6px 10px; }
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  max-width: 400px;
+  width: 90%;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  animation: fadeInUp 0.3s ease;
+}
+
+.modal img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.modal h2 {
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+  color: #2c3e50;
+}
+
+.modal p {
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  color: #555;
+}
+
+.modal .price {
+  font-weight: 700;
+  color: #e67e22;
+  margin-bottom: 16px;
+}
+
+.modal button {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  border: none;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.modal button:hover {
+  background: linear-gradient(135deg, #ff8c42, #e67e22);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
