@@ -8,7 +8,7 @@
   <!-- Estilos principales -->
   <link rel="stylesheet" href="assets/styles.css" />
 
-  <!-- Estilos del carrusel (necesarios para que .carousel-track sea flex y los items se alineen) -->
+  <!-- Estilos del carrusel -->
   <link rel="stylesheet" href="carousel.css" />
 </head>
 <body>
@@ -43,7 +43,7 @@
   <!-- Floating cart -->
   <button id="floatingCart" aria-label="Abrir carrito">🛒 <span class="count">0</span></button>
 
-  <!-- Drawer -->
+  <!-- Drawer (carrito lateral) -->
   <div class="drawer" id="cartDrawer" aria-hidden="true">
     <div class="overlay" onclick="document.getElementById('cartDrawer').classList.remove('open')"></div>
     <div class="panel">
@@ -57,10 +57,21 @@
     </div>
   </div>
 
-  <!-- Cargar script del carrusel (normal script, expone window.initCarousel) -->
-  <script src="carousel.js"></script>
+  <!-- Modal de producto -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <img id="modalImage" src="" alt="">
+      <h2 id="modalTitle"></h2>
+      <p id="modalDesc"></p>
+      <div class="price" id="modalPrice"></div>
+      <button id="addToCartBtn" class="btn primary">Agregar al carrito</button>
+    </div>
+  </div>
 
-  <!-- Cargar módulo del menú (es un module, usa window.initCarousel) -->
+  <!-- Scripts -->
+  <script src="carousel.js"></script>
   <script type="module" src="assets/menu.js"></script>
+  <script src="modal.js"></script>
 </body>
 </html>
+
