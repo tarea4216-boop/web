@@ -27,28 +27,58 @@
       index = Math.max(0, Math.min(index, Math.max(0, items.length - v)));
       const offset = index * itemWidth();
       track.style.transform = `translateX(-${offset}px)`;
+
       items.forEach((it, i) => {
-        it.classList.toggle('active', i >= index && i < index + v);
+        it.classList.toggle("active", i >= index && i < index + v);
       });
     }
 
-    prevBtn && prevBtn.addEventListener('click', () => {
+    // === Botones ===
+    prevBtn && prevBtn.addEventListener("click", () => {
       index = Math.max(index - visibleCount(), 0);
       updateCarousel();
     });
 
-    nextBtn && nextBtn.addEventListener('click', () => {
+    nextBtn && nextBtn.addEventListener("click", () => {
       index = Math.min(index + visibleCount(), Math.max(0, items.length - visibleCount()));
       updateCarousel();
     });
 
-    window.addEventListener('resize', () => {
-      updateCarousel();
+    // === Ruedita del mouse (solo escritorio) ===
+    container.addEventListener("wheel", (e) => {
+      if (window.innerWidth >= 768) {
+        e.preventDefault();
+        if (e.deltaY > 0) {
+          index = Math.min(index + 1, Math.max(0, items.length - visibleCount()));
+        } else {
+          index = Math.max(index - 1, 0);
+        }
+        updateCarousel();
+      }
+    }, { passive: false });
+
+    // === Gestos táctiles (móvil) ===
+    let startX = 0;
+    container.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
     });
+    container.addEventListener("touchend", (e) => {
+      const diff = e.changedTouches[0].clientX - startX;
+      if (Math.abs(diff) > 50) {
+        if (diff < 0) {
+          index = Math.min(index + 1, Math.max(0, items.length - visibleCount()));
+        } else {
+          index = Math.max(index - 1, 0);
+        }
+        updateCarousel();
+      }
+    });
+
+    // === Resize ===
+    window.addEventListener("resize", updateCarousel);
 
     updateCarousel();
   }
 
-  // Exponer la función global
   window.initCarousel = initCarousel;
 })();
