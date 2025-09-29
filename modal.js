@@ -7,8 +7,14 @@ const addToCartBtn = document.getElementById("addToCartBtn");
 
 let currentItem = null;
 
-// Delegación: esperar a que menu.js genere los productos
+// Delegación: abrir modal solo si se hace click en tarjeta (no en el botón "Agregar")
 document.addEventListener("click", (e) => {
+  const addBtn = e.target.closest("[data-add]");
+  if (addBtn) {
+    // Si es botón "Agregar", dejamos que menu.js maneje el carrito y no abrimos modal
+    return;
+  }
+
   const item = e.target.closest(".carousel-item");
   if (item) {
     currentItem = item;
@@ -36,10 +42,25 @@ modal.addEventListener("click", (e) => {
   }
 });
 
-// Botón agregar al carrito
+// Botón "Agregar al carrito" dentro del modal
 addToCartBtn.addEventListener("click", () => {
-  if (currentItem) {
-    currentItem.classList.add("selected");
+  if (!currentItem) return;
+
+  const id = currentItem.querySelector("[data-add]")?.getAttribute("data-add");
+  if (!id) return;
+
+  // Buscar producto en PRODUCTS (expuesto en menu.js)
+  const product = window.PRODUCTS?.find(p => p.id === id);
+  if (product && window.cart) {
+    window.cart.add({
+      id: product.id,
+      nombre: product.nombre,
+      precio: product.precio,
+      imagen_url: product.imagen_url,
+      qty: 1
+    });
+    window.dispatchEvent(new Event("cart:change"));
   }
+
   modal.style.display = "none";
 });
