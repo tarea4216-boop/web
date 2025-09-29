@@ -211,6 +211,9 @@ async function main() {
     order: { col: 'created_at', asc: false }
   });
 
+  window.PRODUCTS = PRODUCTS; // ahora modal.js lo puede usar
+  window.cart = cart;         // 👈 importante
+
   renderProducts(PRODUCTS);
   renderCart();
 
