@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Pagar - El Camarón de Oro</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fffdf8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #ff7b00;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    #map { height: 350px; margin-bottom: 1rem; border-radius: 8px; }
+    #qr, #payment-section {
+      margin-top: 1rem;
+      border: 1px dashed #ccc;
+      padding: 1rem;
+      text-align: center;
+      background: #fff;
+      border-radius: 8px;
+    }
+    .half {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      justify-content: center;
+    }
+    .card {
+      flex: 1;
+      padding: 1rem;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fafafa;
+      min-width: 320px;
+      max-width: 420px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    p { margin: 0.5rem 0; }
+    footer {
+      text-align:center;
+      padding:1rem;
+      color:#888;
+      font-size:0.9rem;
+    }
+    input[type="file"] {
+      margin-top: 1rem;
+    }
+    #ocr-result {
+      font-size: 0.9rem;
+      color: #333;
+      margin-top: 0.5rem;
+      text-align: left;
+      background: #f9f9f9;
+      padding: 0.5rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background: #ff7b00;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pagar tu pedido</h1>
+  </header>
+
+  <main>
+    <div class="half">
+      <!-- MAPA -->
+      <div class="card">
+        <h3>Selecciona ubicación de entrega</h3>
+        <div id="map"></div>
+        <p>Haz clic en el mapa para seleccionar tu dirección de entrega.</p>
+        <p id="coverage-msg" style="font-weight:bold;"></p>
+      </div>
+
+      <!-- RESUMEN Y PAGO -->
+      <div class="card">
+        <h3>Resumen y pago</h3>
+        <div id="cart-summary"></div>
+        
+        <!-- Aquí solo se mostrará el mensaje inicial o el QR dinámicamente -->
+        <div id="qr"></div>
+
+        <!-- Sección oculta que se mostrará después del QR -->
+        <div id="payment-section" style="display:none;">
+          <h4>📸 Sube tu comprobante de pago</h4>
+          <p>Sigue estos pasos:</p>
+          <ol style="text-align:left;">
+            <li>Escanea el código QR con Yape o BCP.</li>
+            <li>Realiza el pago por el monto indicado (puede ser mayor, pero no menor).</li>
+            <li>Haz una captura del comprobante y súbela aquí.</li>
+          </ol>
+          <input type="file" id="receipt-input" accept="image/*">
+          <div id="ocr-result"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 Restaurante El Camarón de Oro
+  </footer>
+
+  <!-- Leaflet -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Tesseract OCR -->
+  <script src="assets/libs/tesseract.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <!-- Configuración Firebase -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYXlV5SEgWfbRtacAEjec2Ve8x6hJtNBA",
+      authDomain: "proyecto-restaurante-60eb0.firebaseapp.com",
+      databaseURL: "https://proyecto-restaurante-60eb0-default-rtdb.firebaseio.com",
+      projectId: "proyecto-restaurante-60eb0",
+      storageBucket: "proyecto-restaurante-60eb0.appspot.com",
+      messagingSenderId: "459872565031",
+      appId: "1:459872565031:web:1633ecd0beb3c98a7c5b02"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <!-- Scripts principales -->
+  <script src="assets/pago.js"></script>
+  <script src="assets/pago_verificar.js"></script>
+</body>
+</html>
