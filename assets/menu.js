@@ -12,32 +12,33 @@ const cartTotalEl = document.getElementById('cartTotal');
 const clearBtn = document.getElementById('clearCart');
 const checkoutBtn = document.getElementById('checkoutBtn');
 
-// Helper robusto para inicializar el carrusel (evita ReferenceError si no está aún cargado)
+// === CONFIGURACIÓN DE WHATSAPP ===
+// Número del restaurante (incluye código de país, sin +)
+const WHATSAPP_NUMBER = "51986556773"; // ← cámbialo si deseas otro número
+
+// === CARRUSEL ROBUSTO ===
 function ensureInitCarousel(container) {
   if (!container) return;
 
-  // Si la función ya está disponible globalmente, usarla
   if (typeof window.initCarousel === 'function') {
     try { window.initCarousel(container); } catch (e) { console.warn('initCarousel falló:', e); }
     return;
   }
 
-  // Si no existe, intentar cargar carousel.js dinámicamente (solo una vez)
   if (!document.querySelector('script[data-carousel-loader]')) {
     const s = document.createElement('script');
     s.src = 'carousel.js';
     s.dataset.carouselLoader = '1';
     s.onload = () => {
       if (typeof window.initCarousel === 'function') {
-        try { window.initCarousel(container); } catch (e) { console.warn('initCarousel after load falló:', e); }
+        try { window.initCarousel(container); } catch (e) { console.warn('initCarousel post-load falló:', e); }
       }
     };
-    s.onerror = () => console.warn('No se pudo cargar carousel.js dinámicamente');
+    s.onerror = () => console.warn('No se pudo cargar carousel.js');
     document.head.appendChild(s);
     return;
   }
 
-  // Si ya existe el loader, esperar brevemente a que esté disponible
   const maxWait = 3000;
   const interval = 100;
   let waited = 0;
@@ -51,11 +52,10 @@ function ensureInitCarousel(container) {
   }, interval);
 }
 
-// === Renderizar productos en carruseles por categoría ===
+// === RENDER DE PRODUCTOS ===
 function renderProducts(list) {
   grid.innerHTML = "";
 
-  // Agrupar productos por categoría
   const grouped = {};
   list.forEach(p => {
     const cat = p.categoria || "Otros";
@@ -63,10 +63,8 @@ function renderProducts(list) {
     grouped[cat].push(p);
   });
 
-  // Crear un carrusel por categoría
   Object.keys(grouped).forEach(cat => {
     const products = grouped[cat];
-
     const section = document.createElement('section');
     section.classList.add('category-section');
     section.innerHTML = `
@@ -94,12 +92,10 @@ function renderProducts(list) {
       </div>
     `;
     grid.appendChild(section);
-
-    // Inicializar el carrusel de forma robusta
     ensureInitCarousel(section.querySelector('.carousel-container'));
   });
 
-  // Bind botones "Agregar"
+  // Botones agregar
   grid.querySelectorAll('[data-add]').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-add');
@@ -112,19 +108,18 @@ function renderProducts(list) {
           imagen_url: product.imagen_url,
           qty: 1
         });
-        // disparar evento para actualizar UI del carrito
         window.dispatchEvent(new Event('cart:change'));
       }
     });
   });
 }
 
-// === Filtrar productos ===
+// === FILTRAR ===
 function filterProducts() {
   const q = (search.value || '').toLowerCase().trim();
   const cat = categoria.value;
-
   let list = PRODUCTS.slice();
+
   if (cat) list = list.filter(p => (p.categoria || '') === cat);
   if (q) list = list.filter(p =>
     (p.nombre || '').toLowerCase().includes(q) ||
@@ -134,7 +129,7 @@ function filterProducts() {
   renderProducts(list);
 }
 
-// === Renderizar carrito ===
+// === CARRITO ===
 function renderCart() {
   const items = cart.items;
   cartList.innerHTML = items.length
@@ -158,17 +153,9 @@ function renderCart() {
     : '<p class="muted">Tu carrito está vacío.</p>';
 
   cartTotalEl.textContent = 'Total: ' + formatMoney(cartTotal());
-
-  // Bind qty actions
-  cartList.querySelectorAll('[data-inc]').forEach(b =>
-    b.addEventListener('click', () => changeQty(b.getAttribute('data-inc'), +1))
-  );
-  cartList.querySelectorAll('[data-dec]').forEach(b =>
-    b.addEventListener('click', () => changeQty(b.getAttribute('data-dec'), -1))
-  );
-  cartList.querySelectorAll('[data-del]').forEach(b =>
-    b.addEventListener('click', () => removeItem(b.getAttribute('data-del')))
-  );
+  cartList.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => changeQty(b.getAttribute('data-inc'), +1)));
+  cartList.querySelectorAll('[data-dec]').forEach(b => b.addEventListener('click', () => changeQty(b.getAttribute('data-dec'), -1)));
+  cartList.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => removeItem(b.getAttribute('data-del'))));
 
   checkoutBtn.href = buildWhatsAppURL(items);
 }
@@ -184,6 +171,7 @@ function removeItem(id) {
   cart.remove(id);
 }
 
+// === URL DE WHATSAPP ===
 function buildWhatsAppURL(items) {
   if (!items.length) return '#';
   let text = 'Hola, quiero hacer un pedido:%0A';
@@ -191,7 +179,7 @@ function buildWhatsAppURL(items) {
     text += `• ${i.nombre} x${i.qty} - ${formatMoney(i.precio * i.qty)}%0A`;
   }
   text += `%0ATotal: ${formatMoney(cartTotal())}`;
-  return `https://wa.me/51986556773?text=${text}`;
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
 }
 
 // === MAIN ===
@@ -203,22 +191,26 @@ async function main() {
 
   clearBtn.addEventListener('click', () => {
     localStorage.removeItem('camaron_cart_v1');
-    window.dispatchEvent(new Event('cart:change'));
+    cart.clear();
     renderCart();
   });
 
-  PRODUCTS = await fetchAll('productos_web', '*', {
-    order: { col: 'created_at', asc: false }
-  });
-
-  window.PRODUCTS = PRODUCTS; // ahora modal.js lo puede usar
-  window.cart = cart;         // 👈 importante
+  PRODUCTS = await fetchAll('productos_web', '*', { order: { col: 'created_at', asc: false } });
+  window.PRODUCTS = PRODUCTS;
+  window.cart = cart;
 
   renderProducts(PRODUCTS);
   renderCart();
 
   search.addEventListener('input', filterProducts);
   categoria.addEventListener('change', filterProducts);
+
+  // Redirección segura a pago.html
+  checkoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.setItem('camaron_cart_v1', JSON.stringify(cart.items));
+    window.location.href = './pago.html';
+  });
 }
 
 main();
