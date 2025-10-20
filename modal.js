@@ -59,7 +59,17 @@ addToCartBtn.addEventListener("click", () => {
       imagen_url: product.imagen_url,
       qty: 1
     });
+    // notifica UI del cambio de carrito
     window.dispatchEvent(new Event("cart:change"));
+
+    // <-- NUEVO: dispara evento personalizado para la animación
+    // enviamos el elemento <img> del modal para que el listener lo use
+    try {
+      document.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } }));
+    } catch (err) {
+      // fallback a window si por alguna razón document falla
+      try { window.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } })); } catch (e) {}
+    }
   }
 
   modal.style.display = "none";
