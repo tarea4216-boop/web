@@ -91,8 +91,10 @@ nav.menu a:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
 /* El carrito flotante debe estar más arriba para no tapar el botón de WhatsApp */
 #floatingCart{
   position:fixed;right:16px;bottom:80px;z-index:1001;
-  width:58px;height:58px;border-radius:50%;display:none;
-  align-items:center;justify-content:center;border:1px solid #eadcc7;
+  width:58px;height:58px;border-radius:50%;
+  display:flex;             /* <-- cambiado: mostrar por defecto */
+  align-items:center;justify-content:center;
+  border:1px solid #eadcc7;
   background:var(--crema-500);color:#fff;box-shadow:var(--shadow);cursor:pointer
 }
 #floatingCart .count{
@@ -341,3 +343,54 @@ p {
     height: 250px;
   }
 }
+
+/* ===== Animación: imagen volando al carrito (mejorada) ===== */
+.flying-img {
+  position: fixed;
+  z-index: 2200;
+  pointer-events: none;
+  border-radius: 12px;
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+  will-change: transform, opacity, filter;
+  transform-origin: center center;
+}
+
+/* sombra proyectada bajo la imagen durante el vuelo */
+.flying-shadow {
+  position: fixed;
+  z-index: 2100;
+  pointer-events: none;
+  width: 90px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.08) 60%, transparent 100%);
+  will-change: transform, opacity;
+  filter: blur(6px);
+  transform-origin: center center;
+}
+
+/* pulso / rebote del carrito al recibir el item */
+@keyframes cartBounce {
+  0%   { transform: translateY(0) scale(1); }
+  40%  { transform: translateY(-8px) scale(1.08); }
+  65%  { transform: translateY(2px) scale(0.98); }
+  100% { transform: translateY(0) scale(1); }
+}
+.floating-cart-bounce { animation: cartBounce 520ms cubic-bezier(.2,.8,.2,1); }
+
+/* pequeño pop del contador */
+@keyframes countPop {
+  0%   { transform: scale(1); opacity: 1; }
+  40%  { transform: scale(1.35); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.floating-count-pop { animation: countPop 360ms cubic-bezier(.2,.8,.2,1); }
+
+/* ligera suavidad extra para blur/brightness durante el vuelo */
+.flying-img.blur {
+  filter: blur(.6px) brightness(.98);
+}
+
