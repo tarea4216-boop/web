@@ -44,7 +44,7 @@
   <button id="floatingCart" aria-label="Abrir carrito">🛒 <span class="count">0</span></button>
 
   <!-- Drawer (carrito lateral) -->
-  <div class="drawer" id="cartDrawer" aria-hidden="true">
+  <div class="drawer" id="cartDrawer">
     <div class="overlay" onclick="document.getElementById('cartDrawer').classList.remove('open')"></div>
     <div class="panel">
       <header>Tu carrito</header>
@@ -52,7 +52,8 @@
       <footer>
         <div style="flex:1;font-weight:800" id="cartTotal">Total: S/ 0.00</div>
         <button class="btn ghost" id="clearCart">Vaciar</button>
-        <a class="btn primary" id="checkoutBtn" href="#" target="_blank" rel="noopener">Pedir por WhatsApp</a>
+        <!-- Botón corregido -->
+        <button class="btn primary" id="checkoutBtn">Pagar ahora</button>
       </footer>
     </div>
   </div>
@@ -72,6 +73,167 @@
   <script src="carousel.js"></script>
   <script type="module" src="assets/menu.js"></script>
   <script src="modal.js"></script>
+
+  <!-- Animación: volar imagen al carrito -->
+ <!-- Animación: volar imagen al carrito -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cartBtn = document.getElementById('floatingCart');
+
+    function getTargetElement() {
+      if (cartBtn && getComputedStyle(cartBtn).display !== 'none' && cartBtn.offsetWidth > 0) return cartBtn;
+      return document.getElementById('checkoutBtn') ||
+             document.querySelector('.drawer .panel header') ||
+             document.getElementById('cartDrawer') ||
+             null;
+    }
+
+    function animateToCart(sourceImgEl) {
+      if (!sourceImgEl) return;
+      const imgRect = sourceImgEl.getBoundingClientRect();
+      const targetEl = getTargetElement();
+      if (!targetEl) return;
+      const cartRect = targetEl.getBoundingClientRect();
+      if (!imgRect.width || !imgRect.height || (!cartRect.width && !cartRect.height)) return;
+
+      // tamaño final de la gota (en px)
+      const DROP_SIZE = Math.max(36, Math.min(72, Math.round(Math.min(imgRect.width, imgRect.height) * 0.36)));
+
+      // crear gota (div con background-image)
+      const drop = document.createElement('div');
+      drop.className = 'flying-drop';
+      drop.style.left = imgRect.left + 'px';
+      drop.style.top = imgRect.top + 'px';
+      drop.style.width = imgRect.width + 'px';
+      drop.style.height = imgRect.height + 'px';
+      drop.style.backgroundImage = `url("${sourceImgEl.src}")`;
+      drop.style.opacity = '1';
+
+      // sombra bajo la gota
+      const shadow = document.createElement('div');
+      shadow.className = 'flying-drop-shadow';
+      shadow.style.left = (imgRect.left) + 'px';
+      shadow.style.top = (imgRect.top + imgRect.height - 8) + 'px';
+      shadow.style.width = Math.max(48, imgRect.width) + 'px';
+      shadow.style.opacity = '0.9';
+
+      document.body.appendChild(shadow);
+      document.body.appendChild(drop);
+
+      // 1) Morph: convertir imagen rectangular en gota circular pequeña (más lento para suavizar)
+      const MORPH_DURATION = 260; // aumentada (antes 160)
+      const morph = drop.animate([
+        { width: imgRect.width + 'px', height: imgRect.height + 'px', borderRadius: '12px', transform: 'scale(1)', opacity: 1 },
+        { width: DROP_SIZE + 'px', height: DROP_SIZE + 'px', borderRadius: '50%', transform: 'scale(0.96)', opacity: 0.98 }
+      ], { duration: MORPH_DURATION, easing: 'cubic-bezier(.22,.9,.18,1)', fill: 'forwards' });
+
+      // ajustar sombra al morph (coincidir duración)
+      const shadowMorph = shadow.animate([
+        { transform: 'scale(1)', opacity: 0.9 },
+        { transform: `scale(${Math.max(0.42, DROP_SIZE / (imgRect.width||1))})`, opacity: 0.62 }
+      ], { duration: MORPH_DURATION, easing: 'ease-out', fill: 'forwards' });
+
+      morph.onfinish = () => {
+        // recalcular posición inicial del drop (centrado respecto al rect original tras resize)
+        const curRect = drop.getBoundingClientRect();
+        const startX = curRect.left;
+        const startY = curRect.top;
+
+        // objetivo (centro del target)
+        const targetX = cartRect.left + (cartRect.width / 2) - (DROP_SIZE / 2);
+        const targetY = cartRect.top + (cartRect.height / 2) - (DROP_SIZE / 2);
+        const deltaX = targetX - startX;
+        const deltaY = targetY - startY;
+
+        // arco (altura proporcional a distancia, límite)
+        const arcHeight = Math.min(180, Math.max(60, Math.abs(deltaX) * 0.18));
+
+        // vuelo: tres pasos (inicio, pico, final) con rotación leve
+        const flight = [
+          { transform: 'translate(0px, 0px) rotate(0deg)', opacity: 1, offset: 0 },
+          { transform: `translate(${deltaX * 0.52}px, ${deltaY * 0.52 - arcHeight}px) rotate(${deltaX > 0 ? 8 : -8}deg)`, opacity: 0.96, offset: 0.52 },
+          { transform: `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX > 0 ? 22 : -22}deg)`, opacity: 0 }
+        ];
+
+        const FLIGHT_DURATION = 1000; // aumentado (antes 720)
+        const flightTiming = { duration: FLIGHT_DURATION, easing: 'cubic-bezier(.22,.9,.18,1)', fill: 'forwards' };
+
+        // ejecutar vuelo (usar translate en transform para mantener left/top)
+        const anim = drop.animate(flight, flightTiming);
+
+        // animar sombra en paralelo (se achica y se desvanece)
+        const sAnim = shadow.animate([
+          { transform: 'translate(0px,0px) scale(1)', opacity: 0.9 },
+          { transform: `translate(${deltaX * 0.52}px, ${Math.max(0, deltaY * 0.52 + arcHeight/2)}px) scale(0.56)`, opacity: 0.5 },
+          { transform: `translate(${deltaX}px, ${Math.max(0, deltaY)}px) scale(0.18)`, opacity: 0 }
+        ], { duration: FLIGHT_DURATION, easing: 'ease-out', fill: 'forwards' });
+
+        anim.onfinish = () => {
+          // rebote del carrito
+          if (targetEl === cartBtn) {
+            cartBtn.classList.add('floating-cart-bounce');
+            setTimeout(() => cartBtn.classList.remove('floating-cart-bounce'), 520);
+          } else {
+            targetEl.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.06)' }, { transform: 'scale(1)' }], { duration: 340, easing: 'ease-out' });
+          }
+
+          // pop contador
+          const countEl = document.querySelector('#floatingCart .count');
+          if (countEl) {
+            countEl.classList.add('floating-count-pop');
+            setTimeout(() => countEl.classList.remove('floating-count-pop'), 360);
+          }
+
+          // cleanup
+          try { drop.remove(); } catch (e) {}
+          try { shadow.remove(); } catch (e) {}
+        };
+
+        // safety cleanup (ligeramente mayor ahora)
+        setTimeout(() => { if (drop.parentNode) drop.remove(); if (shadow.parentNode) shadow.remove(); }, FLIGHT_DURATION + MORPH_DURATION + 600);
+      };
+    }
+    // listener que ya tienes — incluye [data-add] y #addToCartBtn
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.add-to-cart, .btn.add-to-cart, [data-add-to-cart], [data-add], #addToCartBtn, button[data-add]');
+      if (!btn) return;
+
+      const card = btn.closest('.carousel-item, .card, .product-card');
+      let img = null;
+      if (card) img = card.querySelector('img');
+      if (!img) img = document.querySelector('.modal img') || document.querySelector('#modalImage');
+
+      if (img) animateToCart(img);
+    });
+
+    // Soporte para eventos personalizados
+    document.addEventListener('itemAdded', (ev) => {
+      if (ev.detail && ev.detail.img) animateToCart(ev.detail.img);
+    });
+  });
+  </script>
+
+  <!-- Script para redirección al pago -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', e => {
+        e.preventDefault();
+        try {
+          if (window.cart && cart.items && cart.items.length > 0) {
+            localStorage.setItem('camaron_cart_v1', JSON.stringify(cart.items));
+            window.location.href = './pago.html';
+          } else {
+            alert('Tu carrito está vacío.');
+          }
+        } catch (err) {
+          console.error('Error al procesar el pago:', err);
+          alert('Hubo un problema al procesar tu pedido.');
+        }
+      });
+    }
+  });
+  </script>
 </body>
 </html>
-
