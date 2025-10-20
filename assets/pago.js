@@ -63,10 +63,21 @@
     return latlng.distanceTo(restaurantLatLng) <= coverageRadiusMeters;
   }
 
-  // === Inicio de sesión anónima ===
+  // === Inicio de sesión anónima + asignación de rol "cliente" ===
   try {
     const cred = await firebase.auth().signInAnonymously();
     currentUser = cred.user;
+
+    // 👇 Crear rol "cliente" si no existe en la base de datos
+    const roleRef = firebase.database().ref('roles/' + currentUser.uid);
+    const snap = await roleRef.get();
+    if (!snap.exists()) {
+      await roleRef.set('cliente');
+      console.log('✅ Rol "cliente" asignado automáticamente a', currentUser.uid);
+    } else {
+      console.log('ℹ️ Rol existente para', currentUser.uid, ':', snap.val());
+    }
+
   } catch (err) {
     console.error("Error Firebase:", err);
     alert("Error al conectarse a Firebase. Reintenta más tarde.");
