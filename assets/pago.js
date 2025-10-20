@@ -31,7 +31,6 @@
   totalLine.innerHTML = `<b>Total:</b> S/ ${total.toFixed(2)}`;
   summary.appendChild(totalLine);
 
-  // Mensaje inicial
   qrContainer.innerHTML = `
     <p style="color:#555;font-size:0.9rem;">
       📍 Selecciona tu ubicación en el mapa para continuar con el pago.
@@ -58,24 +57,31 @@
   let pedidoId = null;
   let currentUser = null;
 
-  // Verifica si la ubicación seleccionada está dentro de cobertura
   function checkCoverage(latlng) {
     return latlng.distanceTo(restaurantLatLng) <= coverageRadiusMeters;
   }
 
   // === Inicio de sesión anónima + asignación de rol "cliente" ===
   try {
-    const cred = await firebase.auth().signInAnonymously();
+    // 🔹 Iniciar sesión anónima
+    let cred = await firebase.auth().signInAnonymously();
     currentUser = cred.user;
 
-    // 👇 Crear rol "cliente" si no existe en la base de datos
     const roleRef = firebase.database().ref('roles/' + currentUser.uid);
     const snap = await roleRef.get();
+
+    // 🔹 Crear rol cliente si no existe
     if (!snap.exists()) {
       await roleRef.set('cliente');
-      console.log('✅ Rol "cliente" asignado automáticamente a', currentUser.uid);
+      console.log('✅ Rol "cliente" asignado a', currentUser.uid);
+
+      // ⚠️ Forzar nuevo contexto para que Firebase reconozca el rol
+      await firebase.auth().signOut();
+      cred = await firebase.auth().signInAnonymously();
+      currentUser = cred.user;
+      console.log('🔁 Reautenticado como cliente:', currentUser.uid);
     } else {
-      console.log('ℹ️ Rol existente para', currentUser.uid, ':', snap.val());
+      console.log('ℹ️ Rol existente:', snap.val());
     }
 
   } catch (err) {
@@ -90,7 +96,6 @@
     marker = L.marker(e.latlng).addTo(map);
     const selectedLatLng = e.latlng;
 
-    // Verificar cobertura
     if (!checkCoverage(selectedLatLng)) {
       coverageMsg.textContent = '⚠️ Fuera de cobertura. No se puede generar pago.';
       qrContainer.innerHTML = `
@@ -115,10 +120,8 @@
         uid: uid
       };
 
-      // Guardar pedido en Firebase
       await pedidoRef.set(pedidoData);
 
-      // === Mostrar QR y permitir verificación de pago ===
       qrContainer.innerHTML = `
         <h4>✅ Pedido registrado con éxito</h4>
         <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
@@ -130,16 +133,13 @@
         <p>ID de pedido: <b>${pedidoId}</b></p>
       `;
 
-      // Guardar datos para pago_verificar.js
       qrContainer.dataset.pedidoId = pedidoId;
       qrContainer.dataset.total = total;
 
-      // 🔹 Cargar dinámicamente el script de verificación
       const script = document.createElement('script');
       script.src = 'assets/pago_verificar.js';
       document.body.appendChild(script);
 
-      // Limpiar carrito
       localStorage.removeItem(STORAGE_KEY);
       coverageMsg.textContent = '';
 
