@@ -10,6 +10,7 @@
     return;
   }
 
+  // === Mostrar resumen del pedido ===
   let total = 0;
   const ul = document.createElement('ul');
   ul.style.listStyle = 'disc';
@@ -24,9 +25,9 @@
 
   summary.appendChild(ul);
   summary.innerHTML += `<p><b>Total:</b> S/ ${total.toFixed(2)}</p>`;
-
   qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
 
+  // === Configuración del mapa ===
   const restaurantLatLng = L.latLng(-12.525472, -76.557917);
   const coverageRadiusMeters = 5000;
   const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
@@ -38,95 +39,64 @@
   L.marker(restaurantLatLng).addTo(map).bindPopup('📍 Restaurante El Camarón de Oro').openPopup();
 
   let marker = null;
-  let pedidoId = null;
   let currentUser = null;
+  let selectedLatLng = null;
 
   function checkCoverage(latlng) {
     return latlng.distanceTo(restaurantLatLng) <= coverageRadiusMeters;
   }
 
-  // === Sesión anónima y creación segura del rol ===
+  // === Sesión anónima y rol "cliente" ===
   try {
     const cred = await firebase.auth().signInAnonymously();
     currentUser = cred.user;
     const roleRef = firebase.database().ref('roles/' + currentUser.uid);
-
-    // 🔹 Asignar rol si no existe
-    const snap = await roleRef.get();
-    if (!snap.exists()) {
+    if (!(await roleRef.get()).exists()) {
       await roleRef.set('cliente');
-      console.log('✅ Rol "cliente" creado para', currentUser.uid);
-
-      // 🕑 Esperar a que Firebase sincronice las reglas (pequeño retraso)
-      await new Promise(res => setTimeout(res, 1200));
-    } else {
-      console.log('ℹ️ Rol existente:', snap.val());
+      console.log('✅ Rol "cliente" asignado automáticamente a', currentUser.uid);
     }
-
   } catch (err) {
     console.error("Error Firebase:", err);
     alert("Error al conectarse a Firebase. Reintenta más tarde.");
     return;
   }
 
-  // === Al hacer clic en el mapa ===
-  map.on('click', async function(e) {
+  // === Click en el mapa ===
+  map.on('click', function(e) {
     if (marker) map.removeLayer(marker);
     marker = L.marker(e.latlng).addTo(map);
-    const selectedLatLng = e.latlng;
+    selectedLatLng = e.latlng;
 
     if (!checkCoverage(selectedLatLng)) {
-      coverageMsg.textContent = '⚠️ Fuera de cobertura. No se puede generar pago.';
+      coverageMsg.textContent = '⚠️ Fuera de cobertura.';
       qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
       return;
     }
 
-    coverageMsg.textContent = '✅ Dentro de cobertura. Registrando pedido...';
+    coverageMsg.textContent = '✅ Dentro de cobertura. Puedes proceder al pago.';
 
-    try {
-      const uid = currentUser.uid;
-      const pedidoRef = firebase.database().ref('pedidos').push();
-      pedidoId = pedidoRef.key;
+    qrContainer.innerHTML = `
+      <h4>Resumen de tu pedido</h4>
+      <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
+      <p>Escanea este código QR con Yape o BCP para realizar el pago.</p>
+      <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
+      <p style="color:#555;font-size:0.9rem;margin-top:5px;">
+        Luego sube la captura del comprobante para verificarlo automáticamente.
+      </p>
+    `;
 
-      const pedidoData = {
-        uid,
-        ubicacion: { lat: selectedLatLng.lat, lng: selectedLatLng.lng },
-        items: cart,
-        total,
-        fecha: new Date().toISOString(),
-        estado: "pendiente"
-      };
+    // Guardar datos para pago_verificar.js
+    qrContainer.dataset.total = total;
+    qrContainer.dataset.cart = JSON.stringify(cart);
+    qrContainer.dataset.lat = selectedLatLng.lat;
+    qrContainer.dataset.lng = selectedLatLng.lng;
+    qrContainer.dataset.uid = currentUser.uid;
 
-      // 🔹 Intentar escribir, reintentar una vez si da error
-      try {
-        await pedidoRef.set(pedidoData);
-      } catch (err) {
-        console.warn("Primer intento falló, esperando 1s y reintentando...");
-        await new Promise(res => setTimeout(res, 1000));
-        await pedidoRef.set(pedidoData);
-      }
+    // Cargar verificador OCR
+    const script = document.createElement('script');
+    script.src = 'assets/pago_verificar.js';
+    document.body.appendChild(script);
 
-      qrContainer.innerHTML = `
-        <h4>✅ Pedido registrado con éxito</h4>
-        <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
-        <p>Escanea este código QR con Yape o BCP para realizar el pago.</p>
-        <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
-        <p style="color:#555;font-size:0.9rem;margin-top:5px;">
-          Luego sube la captura del comprobante para verificarlo automáticamente.
-        </p>
-        <p>ID de pedido: <b>${pedidoId}</b></p>
-      `;
-
-      const script = document.createElement('script');
-      script.src = 'assets/pago_verificar.js';
-      document.body.appendChild(script);
-
-      localStorage.removeItem(STORAGE_KEY);
-      coverageMsg.textContent = '';
-
-    } catch (err) {
-      console.error("Error al guardar pedido:", err);
-      alert('Error al guardar pedido o generar QR: ' + err.message);
-    }
+    localStorage.removeItem(STORAGE_KEY);
   });
 })();
