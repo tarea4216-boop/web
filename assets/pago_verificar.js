@@ -2,27 +2,11 @@
   const qrContainer = document.getElementById('qr');
   if (!qrContainer) return;
 
-  // 🔹 Importar módulos de Firebase dinámicamente
-  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js");
-  const { getDatabase, ref, push, set, update } = await import("https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js");
-  const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js");
+  // 🔹 Usar Firebase ya inicializado en pago.html
+  const db = firebase.database();
+  const auth = firebase.auth();
 
-  // 🔧 Configuración Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAYXlV5SEgWfbRtacAEjec2Ve8x6hJtNBA",
-    authDomain: "proyecto-restaurante-60eb0.firebaseapp.com",
-    databaseURL: "https://proyecto-restaurante-60eb0-default-rtdb.firebaseio.com",
-    projectId: "proyecto-restaurante-60eb0",
-    storageBucket: "proyecto-restaurante-60eb0.appspot.com",
-    messagingSenderId: "459872565031",
-    appId: "1:459872565031:web:1633ecd0beb3c98a7c5b02"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
-
-  // ==================== ELEMENTOS DEL DOM ====================
+  // === Elementos visuales ===
   const uploadContainer = document.createElement('div');
   uploadContainer.innerHTML = `
     <h4>📸 Subir comprobante de pago</h4>
@@ -41,106 +25,69 @@
   const statusDiv = document.getElementById('verify-status');
 
   let selectedFile = null;
-  let pedidoId = null;
-  let totalPedido = 0;
   let usuarioActual = null;
 
-  // ==================== DETECTAR INFO DEL PEDIDO ====================
-  const pedidoText = qrContainer.querySelector("p b");
-  if (pedidoText) pedidoId = pedidoText.textContent.trim();
-
-  const totalText = qrContainer.querySelector("p:nth-of-type(2)");
-  if (totalText) {
-    const match = totalText.textContent.match(/S\/\s*([\d.]+)/);
-    if (match) totalPedido = parseFloat(match[1]);
-  }
+  const pedidoId = qrContainer.dataset.uid;
+  const totalPedido = parseFloat(qrContainer.dataset.total || "0");
+  const carrito = JSON.parse(qrContainer.dataset.cart || "[]");
+  const lat = parseFloat(qrContainer.dataset.lat);
+  const lng = parseFloat(qrContainer.dataset.lng);
 
   inputFile.addEventListener('change', (e) => {
     selectedFile = e.target.files[0];
   });
 
-  // ==================== VERIFICAR AUTENTICACIÓN ====================
-  onAuthStateChanged(auth, (user) => {
+  auth.onAuthStateChanged(user => {
     usuarioActual = user;
-    if (!user) console.warn("⚠️ No hay usuario autenticado. El rol de cliente debe iniciar sesión.");
   });
 
-  // ==================== PROCESO PRINCIPAL ====================
+  // === Verificar comprobante ===
   verifyBtn.addEventListener('click', async () => {
     if (!selectedFile) {
-      alert("Por favor selecciona una imagen del comprobante.");
+      alert("Selecciona una imagen del comprobante.");
       return;
     }
 
-    statusDiv.textContent = "⏳ Procesando imagen, por favor espera...";
+    statusDiv.textContent = "⏳ Analizando imagen...";
     verifyBtn.disabled = true;
 
     try {
-      // OCR con Tesseract
-      const result = await Tesseract.recognize(selectedFile, 'spa', {
-        logger: info => console.log(info)
-      });
-
+      // Procesar OCR con Tesseract.js
+      const result = await Tesseract.recognize(selectedFile, 'spa');
       const text = result.data.text.toLowerCase();
       console.log("📄 Texto detectado:", text);
 
-      // === Extraer datos ===
       const montoMatch = text.match(/s\/\s*([\d,.]+)/);
       const montoPagado = montoMatch ? parseFloat(montoMatch[1].replace(',', '.')) : null;
-      const fechaMatch = text.match(/(\d{2}\/\d{2}\/\d{4})/);
-      const horaMatch = text.match(/(\d{1,2}:\d{2})/);
 
-      if (!montoPagado) {
-        statusDiv.innerHTML = "❌ No se pudo detectar el monto en la imagen.";
-        verifyBtn.disabled = false;
-        return;
-      }
+      if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
+      if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total del pedido.");
 
-      if (montoPagado < totalPedido) {
-        statusDiv.innerHTML = `⚠️ El monto pagado (S/ ${montoPagado.toFixed(2)}) es menor al total (S/ ${totalPedido.toFixed(2)}).`;
-        verifyBtn.disabled = false;
-        return;
-      }
+      // Crear registro en pedidosOnline
+      const refNuevo = db.ref("pedidosOnline").push();
+      await refNuevo.set({
+        idTemporal: pedidoId,
+        total: totalPedido,
+        estado: "confirmado",
+        cliente: usuarioActual?.uid || "anónimo",
+        creadoEn: Date.now(),
+        ubicacion: { lat, lng },
+        items: carrito,
+        verificacion: {
+          monto: montoPagado,
+          fecha: new Date().toLocaleDateString(),
+          hora: new Date().toLocaleTimeString(),
+          verificado_en: new Date().toISOString()
+        }
+      });
 
       statusDiv.innerHTML = `
-        ✅ Monto detectado: S/ ${montoPagado.toFixed(2)}<br>
-        📅 Fecha: ${fechaMatch ? fechaMatch[1] : "No detectada"}<br>
-        🕒 Hora: ${horaMatch ? horaMatch[1] : "No detectada"}<br>
-        <br>Verificando en Firebase...
+        ✅ Pago verificado con éxito.<br>
+        💾 Pedido guardado en <b>pedidosOnline</b> y enviado a cocina.
       `;
-
-      // ==================== GUARDAR PEDIDO CONFIRMADO ====================
-      if (usuarioActual) {
-        const nuevoPedidoRef = push(ref(db, "pedidosOnline"));
-        await set(nuevoPedidoRef, {
-          idTemporal: pedidoId,
-          total: totalPedido,
-          estado: "confirmado",
-          cliente: usuarioActual.email || "anónimo",
-          creadoEn: Date.now(),
-          items: [
-            // Si tienes los productos del carrito, aquí podrías insertarlos dinámicamente
-            { nombre: "Pedido Yape", cantidad: 1, precio: totalPedido, categoria: "plato" }
-          ],
-          verificacion: {
-            monto: montoPagado,
-            fecha: fechaMatch ? fechaMatch[1] : null,
-            hora: horaMatch ? horaMatch[1] : null,
-            verificado_en: new Date().toISOString()
-          }
-        });
-
-        statusDiv.innerHTML += `
-          <br><br>🎉 Pago verificado con éxito.<br>
-          ✅ El pedido fue guardado en <b>pedidosOnline</b> y enviado a cocina.
-        `;
-      } else {
-        statusDiv.innerHTML += `<br><br>⚠️ No hay usuario autenticado para registrar el pedido.`;
-      }
-
     } catch (err) {
       console.error(err);
-      statusDiv.textContent = "❌ Error al procesar la imagen: " + err.message;
+      statusDiv.textContent = "❌ Error: " + err.message;
     }
 
     verifyBtn.disabled = false;
