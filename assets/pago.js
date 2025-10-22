@@ -1,4 +1,4 @@
-(async function() {
+(async function () {
   const STORAGE_KEY = 'camaron_cart_v1';
   const cart = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   const summary = document.getElementById('cart-summary');
@@ -51,7 +51,8 @@
     const cred = await firebase.auth().signInAnonymously();
     currentUser = cred.user;
     const roleRef = firebase.database().ref('roles/' + currentUser.uid);
-    if (!(await roleRef.get()).exists()) {
+    const snapshot = await roleRef.get();
+    if (!snapshot.exists()) {
       await roleRef.set('cliente');
       console.log('✅ Rol "cliente" asignado automáticamente a', currentUser.uid);
     }
@@ -62,7 +63,7 @@
   }
 
   // === Click en el mapa ===
-  map.on('click', function(e) {
+  map.on('click', function (e) {
     if (marker) map.removeLayer(marker);
     marker = L.marker(e.latlng).addTo(map);
     selectedLatLng = e.latlng;
@@ -75,8 +76,10 @@
 
     coverageMsg.textContent = '✅ Dentro de cobertura. Puedes proceder al pago.';
 
+    // Mostrar QR e información del pedido
     qrContainer.innerHTML = `
       <h4>Resumen de tu pedido</h4>
+      <p><b>ID Pedido:</b> ${currentUser.uid}</p>
       <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
       <p>Escanea este código QR con Yape o BCP para realizar el pago.</p>
       <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
@@ -92,11 +95,12 @@
     qrContainer.dataset.lng = selectedLatLng.lng;
     qrContainer.dataset.uid = currentUser.uid;
 
-    // Cargar verificador OCR
+    // Cargar verificador OCR dinámicamente
     const script = document.createElement('script');
     script.src = 'assets/pago_verificar.js';
     document.body.appendChild(script);
 
+    // Limpiar carrito local
     localStorage.removeItem(STORAGE_KEY);
   });
 })();
