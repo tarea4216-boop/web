@@ -2,18 +2,14 @@
   const qrContainer = document.getElementById('qr');
   if (!qrContainer) return;
 
-  // 🔹 Usar Firebase ya inicializado en pago.html
   const db = firebase.database();
   const auth = firebase.auth();
 
-  // === Elementos visuales ===
+  // === Crear contenedor de subida ===
   const uploadContainer = document.createElement('div');
   uploadContainer.innerHTML = `
     <h4>📸 Subir comprobante de pago</h4>
-    <p>Por favor, sube la captura de pantalla del pago realizado en Yape.</p>
-    <p style="font-size: 0.9rem; color: #555;">
-      Asegúrate de que se vean claramente el <b>monto</b>, la <b>fecha</b> y la <b>hora</b> del pago.
-    </p>
+    <p>Por favor, sube la captura del pago realizado en Yape o BCP.</p>
     <input type="file" id="capture-input" accept="image/*" />
     <button id="verify-btn" class="btn primary" style="margin-top: 10px;">Verificar pago</button>
     <div id="verify-status" style="margin-top: 1rem; font-weight:bold;"></div>
@@ -52,7 +48,7 @@
     verifyBtn.disabled = true;
 
     try {
-      // Procesar OCR con Tesseract.js
+      // OCR con Tesseract.js
       const result = await Tesseract.recognize(selectedFile, 'spa');
       const text = result.data.text.toLowerCase();
       console.log("📄 Texto detectado:", text);
@@ -63,7 +59,7 @@
       if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
       if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total del pedido.");
 
-      // Crear registro en pedidosOnline
+      // === Guardar pedido en Firebase ===
       const refNuevo = db.ref("pedidosOnline").push();
       await refNuevo.set({
         idTemporal: pedidoId,
@@ -81,15 +77,41 @@
         }
       });
 
-      statusDiv.innerHTML = `
-        ✅ Pago verificado con éxito.<br>
-        💾 Pedido guardado en <b>pedidosOnline</b> y enviado a cocina.
+      // ✅ Bloquear mapa
+      if (window.bloquearMapaPago) window.bloquearMapaPago();
+
+      // === Descargar PDF del pedido ===
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(14);
+      doc.text("Comprobante de Pedido - El Camarón de Oro", 15, 20);
+      doc.setFontSize(11);
+      doc.text(`ID Pedido: ${pedidoId}`, 15, 35);
+      doc.text(`Fecha: ${new Date().toLocaleString()}`, 15, 45);
+      doc.text(`Monto total: S/ ${totalPedido.toFixed(2)}`, 15, 55);
+      doc.text(`Estado: Confirmado`, 15, 65);
+      doc.text("Items:", 15, 80);
+
+      let y = 90;
+      carrito.forEach(it => {
+        doc.text(`- ${it.nombre} x${it.qty} — S/ ${(it.precio * it.qty).toFixed(2)}`, 20, y);
+        y += 8;
+      });
+
+      doc.text("Gracias por tu compra ❤️", 15, y + 10);
+      doc.save(`Pedido_${pedidoId}.pdf`);
+
+      // === Mostrar confirmación visual ===
+      qrContainer.innerHTML = `
+        <h3>🎉 Pago confirmado con éxito</h3>
+        <p>Tu pedido fue guardado y enviado a cocina.</p>
+        <p>Se ha descargado un comprobante en formato PDF.</p>
       `;
+
     } catch (err) {
       console.error(err);
       statusDiv.textContent = "❌ Error: " + err.message;
+      verifyBtn.disabled = false;
     }
-
-    verifyBtn.disabled = false;
   });
 })();
