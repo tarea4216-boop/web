@@ -10,21 +10,26 @@
     return;
   }
 
-  // === Mostrar resumen del pedido ===
+  // === Mostrar resumen del pedido con campo de comentario ===
   let total = 0;
   const ul = document.createElement('ul');
-  ul.style.listStyle = 'disc';
-  ul.style.paddingLeft = '1.5rem';
+  ul.style.listStyle = 'none';
+  ul.style.paddingLeft = '0';
 
-  cart.forEach(it => {
+  cart.forEach((it, index) => {
     const li = document.createElement('li');
-    li.textContent = `${it.nombre} x${it.qty} — S/ ${(it.precio * it.qty).toFixed(2)}`;
+    li.style.marginBottom = '1rem';
+    li.innerHTML = `
+      <p><b>${it.nombre}</b> x${it.qty} — S/ ${(it.precio * it.qty).toFixed(2)}</p>
+      <textarea id="comentario-${index}" placeholder="Comentario adicional (opcional)" rows="1" style="width:100%;resize:none;border-radius:6px;padding:5px;"></textarea>
+    `;
     ul.appendChild(li);
     total += it.precio * it.qty;
   });
 
   summary.appendChild(ul);
   summary.innerHTML += `<p><b>Total:</b> S/ ${total.toFixed(2)}</p>`;
+
   qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
 
   // === Configuración del mapa ===
@@ -41,12 +46,13 @@
   let marker = null;
   let currentUser = null;
   let selectedLatLng = null;
+  let pagoConfirmado = false;
 
   function checkCoverage(latlng) {
     return latlng.distanceTo(restaurantLatLng) <= coverageRadiusMeters;
   }
 
-  // === Sesión anónima y rol "cliente" ===
+  // === Sesión anónima ===
   try {
     const cred = await firebase.auth().signInAnonymously();
     currentUser = cred.user;
@@ -64,6 +70,11 @@
 
   // === Click en el mapa ===
   map.on('click', function (e) {
+    if (pagoConfirmado) {
+      alert("✅ El pago ya fue confirmado. No puedes cambiar la ubicación.");
+      return;
+    }
+
     if (marker) map.removeLayer(marker);
     marker = L.marker(e.latlng).addTo(map);
     selectedLatLng = e.latlng;
@@ -76,7 +87,13 @@
 
     coverageMsg.textContent = '✅ Dentro de cobertura. Puedes proceder al pago.';
 
-    // Mostrar QR e información del pedido
+    // Actualizar comentarios de los productos
+    const cartWithComments = cart.map((it, index) => {
+      const textarea = document.getElementById(`comentario-${index}`);
+      return { ...it, comentario: textarea?.value?.trim() || "" };
+    });
+
+    // Mostrar QR
     qrContainer.innerHTML = `
       <h4>Resumen de tu pedido</h4>
       <p><b>ID Pedido:</b> ${currentUser.uid}</p>
@@ -88,19 +105,29 @@
       </p>
     `;
 
-    // Guardar datos para pago_verificar.js
     qrContainer.dataset.total = total;
-    qrContainer.dataset.cart = JSON.stringify(cart);
+    qrContainer.dataset.cart = JSON.stringify(cartWithComments);
     qrContainer.dataset.lat = selectedLatLng.lat;
     qrContainer.dataset.lng = selectedLatLng.lng;
     qrContainer.dataset.uid = currentUser.uid;
 
-    // Cargar verificador OCR dinámicamente
-    const script = document.createElement('script');
-    script.src = 'assets/pago_verificar.js';
-    document.body.appendChild(script);
+    if (!document.getElementById("verificadorScript")) {
+      const script = document.createElement('script');
+      script.id = "verificadorScript";
+      script.src = 'assets/pago_verificar.js';
+      document.body.appendChild(script);
+    }
 
-    // Limpiar carrito local
     localStorage.removeItem(STORAGE_KEY);
   });
+
+  window.bloquearMapaPago = function () {
+    pagoConfirmado = true;
+    map.dragging.disable();
+    map.touchZoom.disable();
+    map.doubleClickZoom.disable();
+    map.scrollWheelZoom.disable();
+    map.boxZoom.disable();
+    map.keyboard.disable();
+  };
 })();
