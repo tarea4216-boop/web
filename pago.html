@@ -4,8 +4,11 @@
   <meta charset="utf-8">
   <title>Pagar - El Camarón de Oro</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="assets/styles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -47,25 +50,11 @@
       max-width: 420px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    p { margin: 0.5rem 0; }
     footer {
       text-align:center;
       padding:1rem;
       color:#888;
       font-size:0.9rem;
-    }
-    input[type="file"] {
-      margin-top: 1rem;
-    }
-    #ocr-result {
-      font-size: 0.9rem;
-      color: #333;
-      margin-top: 0.5rem;
-      text-align: left;
-      background: #f9f9f9;
-      padding: 0.5rem;
-      border-radius: 6px;
-      white-space: pre-wrap;
     }
     .btn {
       display: inline-block;
@@ -78,6 +67,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <h1>Pagar tu pedido</h1>
@@ -97,21 +87,8 @@
       <div class="card">
         <h3>Resumen y pago</h3>
         <div id="cart-summary"></div>
-        
-        <!-- Aquí solo se mostrará el mensaje inicial o el QR dinámicamente -->
-        <div id="qr"></div>
-
-        <!-- Sección oculta que se mostrará después del QR -->
-        <div id="payment-section" style="display:none;">
-          <h4>📸 Sube tu comprobante de pago</h4>
-          <p>Sigue estos pasos:</p>
-          <ol style="text-align:left;">
-            <li>Escanea el código QR con Yape o BCP.</li>
-            <li>Realiza el pago por el monto indicado (puede ser mayor, pero no menor).</li>
-            <li>Haz una captura del comprobante y súbela aquí.</li>
-          </ol>
-          <input type="file" id="receipt-input" accept="image/*">
-          <div id="ocr-result"></div>
+        <div id="qr">
+          <p style="color:#888;">Esperando ubicación para mostrar opciones de pago...</p>
         </div>
       </div>
     </div>
@@ -121,11 +98,12 @@
     © 2025 Restaurante El Camarón de Oro
   </footer>
 
-  <!-- Leaflet -->
+  <!-- Librerías base -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <!-- Tesseract OCR -->
+  <!-- OCR y PDF -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -146,8 +124,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   </script>
 
-  <!-- Scripts principales -->
-  <script src="assets/pago.js"></script>
-  <script src="assets/pago_verificar.js"></script>
+  <!-- Script principal -->
+  <script id="pagoScript" src="assets/pago.js"></script>
 </body>
 </html>
