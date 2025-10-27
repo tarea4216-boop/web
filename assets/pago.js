@@ -7,6 +7,7 @@
 
   if (!cart.length) {
     summary.innerHTML = '<p>Tu carrito está vacío.</p>';
+    showToast("⚠️ Tu carrito está vacío", "error");
     return;
   }
 
@@ -64,14 +65,14 @@
     }
   } catch (err) {
     console.error("Error Firebase:", err);
-    alert("Error al conectarse a Firebase. Reintenta más tarde.");
+    showToast("❌ Error al conectarse a Firebase. Reintenta más tarde.", "error");
     return;
   }
 
   // === Click en el mapa ===
   map.on('click', function (e) {
     if (pagoConfirmado) {
-      alert("✅ El pago ya fue confirmado. No puedes cambiar la ubicación.");
+      showToast("✅ El pago ya fue confirmado. No puedes cambiar la ubicación.", "info");
       return;
     }
 
@@ -82,10 +83,12 @@
     if (!checkCoverage(selectedLatLng)) {
       coverageMsg.textContent = '⚠️ Fuera de cobertura.';
       qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
+      showToast("⚠️ Estás fuera del área de entrega.", "error");
       return;
     }
 
     coverageMsg.textContent = '✅ Dentro de cobertura. Puedes proceder al pago.';
+    showToast("✅ Ubicación dentro del área de entrega", "success");
 
     // Actualizar comentarios de los productos
     const cartWithComments = cart.map((it, index) => {
@@ -120,6 +123,10 @@
 
     localStorage.removeItem(STORAGE_KEY);
   });
+
+  if (window.opener && window.opener.cart) {
+    window.opener.cart.clear?.();
+  }
 
   window.bloquearMapaPago = function () {
     pagoConfirmado = true;
