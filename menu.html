@@ -10,6 +10,11 @@
 
   <!-- Estilos del carrusel -->
   <link rel="stylesheet" href="carousel.css" />
+
+  <!-- 🔔 Sistema de notificaciones toast -->
+<link rel="stylesheet" href="assets/toast/toast.css">
+<script src="assets/toast/toast.js"></script>
+
 </head>
 <body>
   <header class="header"></header>
@@ -279,27 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </style>
 
 
-  <!-- Script para redirección al pago -->
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (checkoutBtn) {
-      checkoutBtn.addEventListener('click', e => {
-        e.preventDefault();
-        try {
-          if (window.cart && cart.items && cart.items.length > 0) {
-            localStorage.setItem('camaron_cart_v1', JSON.stringify(cart.items));
-            window.location.href = './pago.html';
-          } else {
-            alert('Tu carrito está vacío.');
-          }
-        } catch (err) {
-          console.error('Error al procesar el pago:', err);
-          alert('Hubo un problema al procesar tu pedido.');
-        }
-      });
-    }
-  });
-  </script>
+<div id="toastContainer" class="toast-container"></div>
+
 </body>
 </html>
