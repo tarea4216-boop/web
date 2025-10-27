@@ -1,7 +1,9 @@
+// === IMPORTACIONES PRINCIPALES ===
 import { fetchAll } from './supabaseClient.js';
 import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
+// === VARIABLES GLOBALES ===
 let PRODUCTS = [];
 
 const grid = document.getElementById('menuGrid');
@@ -13,15 +15,15 @@ const clearBtn = document.getElementById('clearCart');
 const checkoutBtn = document.getElementById('checkoutBtn');
 
 // === CONFIGURACIÓN DE WHATSAPP ===
-// Número del restaurante (incluye código de país, sin +)
 const WHATSAPP_NUMBER = "51986556773"; // ← cámbialo si deseas otro número
 
-// === CARRUSEL ROBUSTO ===
+// === INICIALIZACIÓN DE CARRUSEL ===
 function ensureInitCarousel(container) {
   if (!container) return;
 
   if (typeof window.initCarousel === 'function') {
-    try { window.initCarousel(container); } catch (e) { console.warn('initCarousel falló:', e); }
+    try { window.initCarousel(container); } 
+    catch (e) { console.warn('initCarousel falló:', e); }
     return;
   }
 
@@ -31,7 +33,8 @@ function ensureInitCarousel(container) {
     s.dataset.carouselLoader = '1';
     s.onload = () => {
       if (typeof window.initCarousel === 'function') {
-        try { window.initCarousel(container); } catch (e) { console.warn('initCarousel post-load falló:', e); }
+        try { window.initCarousel(container); } 
+        catch (e) { console.warn('initCarousel post-load falló:', e); }
       }
     };
     s.onerror = () => console.warn('No se pudo cargar carousel.js');
@@ -39,6 +42,7 @@ function ensureInitCarousel(container) {
     return;
   }
 
+  // Espera máxima 3s
   const maxWait = 3000;
   const interval = 100;
   let waited = 0;
@@ -52,7 +56,7 @@ function ensureInitCarousel(container) {
   }, interval);
 }
 
-// === RENDER DE PRODUCTOS ===
+// === RENDERIZADO DE PRODUCTOS ===
 function renderProducts(list) {
   grid.innerHTML = "";
 
@@ -95,7 +99,7 @@ function renderProducts(list) {
     ensureInitCarousel(section.querySelector('.carousel-container'));
   });
 
-  // Botones agregar
+  // === EVENTO: AGREGAR AL CARRITO ===
   grid.querySelectorAll('[data-add]').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-add');
@@ -108,13 +112,18 @@ function renderProducts(list) {
           imagen_url: product.imagen_url,
           qty: 1
         });
+
+        // ✅ Notificación
+        showToast(`🛒 ${product.nombre} agregado al carrito`, "success");
         window.dispatchEvent(new Event('cart:change'));
+      } else {
+        showToast("⚠️ Producto no encontrado", "error");
       }
     });
   });
 }
 
-// === FILTRAR ===
+// === FILTRADO DE PRODUCTOS ===
 function filterProducts() {
   const q = (search.value || '').toLowerCase().trim();
   const cat = categoria.value;
@@ -129,7 +138,7 @@ function filterProducts() {
   renderProducts(list);
 }
 
-// === CARRITO ===
+// === RENDER DEL CARRITO ===
 function renderCart() {
   const items = cart.items;
   cartList.innerHTML = items.length
@@ -160,15 +169,21 @@ function renderCart() {
   checkoutBtn.href = buildWhatsAppURL(items);
 }
 
+// === CAMBIO DE CANTIDAD ===
 function changeQty(id, delta) {
   const item = cart.items.find(x => x.id === id);
   if (!item) return;
   const next = Math.max(1, item.qty + delta);
   cart.setQty(id, next);
+  showToast(`🔁 ${item.nombre}: cantidad actual ${next}`, "info");
 }
 
+// === ELIMINAR ITEM ===
 function removeItem(id) {
+  const item = cart.items.find(x => x.id === id);
+  if (!item) return;
   cart.remove(id);
+  showToast(`❌ ${item.nombre} eliminado del carrito`, "error");
 }
 
 // === URL DE WHATSAPP ===
@@ -182,35 +197,60 @@ function buildWhatsAppURL(items) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
 }
 
-// === MAIN ===
+// === FUNCIÓN PRINCIPAL ===
 async function main() {
-  await mountChrome();
-  initFloatingCart();
+  try {
+    await mountChrome();
+    initFloatingCart();
 
-  window.addEventListener('cart:change', renderCart);
+    // 🔹 Sincroniza carrito localStorage ↔ memoria
+    const stored = JSON.parse(localStorage.getItem('camaron_cart_v1') || '[]');
+    if (!stored.length) {
+      cart.clear(); 
+    }
 
-  clearBtn.addEventListener('click', () => {
-    localStorage.removeItem('camaron_cart_v1');
-    cart.clear();
+    window.addEventListener('cart:change', renderCart);
+
+    // 🧹 Vaciar carrito
+    clearBtn.addEventListener('click', () => {
+      if (!cart.items.length) {
+        showToast("⚠️ Tu carrito ya está vacío", "info");
+        return;
+      }
+      localStorage.removeItem('camaron_cart_v1');
+      cart.clear();
+      renderCart();
+      showToast("🧹 Carrito vaciado correctamente", "success");
+    });
+
+    // 🔄 Cargar productos
+    PRODUCTS = await fetchAll('productos_web', '*', { order: { col: 'created_at', asc: false } });
+    window.PRODUCTS = PRODUCTS;
+    window.cart = cart;
+
+    renderProducts(PRODUCTS);
     renderCart();
-  });
 
-  PRODUCTS = await fetchAll('productos_web', '*', { order: { col: 'created_at', asc: false } });
-  window.PRODUCTS = PRODUCTS;
-  window.cart = cart;
+    search.addEventListener('input', filterProducts);
+    categoria.addEventListener('change', filterProducts);
 
-  renderProducts(PRODUCTS);
-  renderCart();
+    // 🧾 Redirección segura a pago.html
+    checkoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!cart.items.length) {
+        showToast("⚠️ Tu carrito está vacío", "error");
+        return;
+      }
+      localStorage.setItem('camaron_cart_v1', JSON.stringify(cart.items));
+      showToast("✅ Redirigiendo al pago...", "success");
+      setTimeout(() => (window.location.href = './pago.html'), 600);
+    });
 
-  search.addEventListener('input', filterProducts);
-  categoria.addEventListener('change', filterProducts);
-
-  // Redirección segura a pago.html
-  checkoutBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    localStorage.setItem('camaron_cart_v1', JSON.stringify(cart.items));
-    window.location.href = './pago.html';
-  });
+  } catch (err) {
+    console.error("Error en el menú:", err);
+    showToast("❌ Error al cargar el menú", "error");
+  }
 }
 
+// 🚀 Ejecutar
 main();
