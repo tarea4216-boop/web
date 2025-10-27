@@ -5,7 +5,6 @@
   const db = firebase.database();
   const auth = firebase.auth();
 
-  // === Crear contenedor de subida ===
   const uploadContainer = document.createElement('div');
   uploadContainer.innerHTML = `
     <h4>📸 Subir comprobante de pago</h4>
@@ -37,10 +36,9 @@
     usuarioActual = user;
   });
 
-  // === Verificar comprobante ===
   verifyBtn.addEventListener('click', async () => {
     if (!selectedFile) {
-      alert("Selecciona una imagen del comprobante.");
+      showToast("⚠️ Selecciona una imagen del comprobante.", "info");
       return;
     }
 
@@ -48,7 +46,6 @@
     verifyBtn.disabled = true;
 
     try {
-      // OCR con Tesseract.js
       const result = await Tesseract.recognize(selectedFile, 'spa');
       const text = result.data.text.toLowerCase();
       console.log("📄 Texto detectado:", text);
@@ -59,7 +56,6 @@
       if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
       if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total del pedido.");
 
-      // === Guardar pedido en Firebase ===
       const refNuevo = db.ref("pedidosOnline").push();
       await refNuevo.set({
         idTemporal: pedidoId,
@@ -77,10 +73,8 @@
         }
       });
 
-      // ✅ Bloquear mapa
       if (window.bloquearMapaPago) window.bloquearMapaPago();
 
-      // === Descargar PDF del pedido ===
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       doc.setFontSize(14);
@@ -101,7 +95,8 @@
       doc.text("Gracias por tu compra ❤️", 15, y + 10);
       doc.save(`Pedido_${pedidoId}.pdf`);
 
-      // === Mostrar confirmación visual ===
+      showToast("🎉 Pago confirmado con éxito. Comprobante descargado.", "success");
+
       qrContainer.innerHTML = `
         <h3>🎉 Pago confirmado con éxito</h3>
         <p>Tu pedido fue guardado y enviado a cocina.</p>
@@ -111,6 +106,7 @@
     } catch (err) {
       console.error(err);
       statusDiv.textContent = "❌ Error: " + err.message;
+      showToast("❌ " + err.message, "error");
       verifyBtn.disabled = false;
     }
   });
