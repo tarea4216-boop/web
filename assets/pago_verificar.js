@@ -1,4 +1,7 @@
-(async () => {
+import { supabase } from './supabaseClient.js';
+
+window.initPagoVerificar = async function () {
+
   const qrContainer = document.getElementById('qr');
   if (!qrContainer) return;
 
@@ -56,6 +59,7 @@
       if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
       if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total del pedido.");
 
+      // === 1️⃣ Guardar pedido en Firebase
       const refNuevo = db.ref("pedidosOnline").push();
       await refNuevo.set({
         idTemporal: pedidoId,
@@ -73,8 +77,20 @@
         }
       });
 
+      // === 2️⃣ Registrar venta en SUPABASE ===
+      const { error: insertError } = await supabase.from('ventas').insert([{
+        id_pedido: pedidoId,
+        cliente: usuarioActual?.uid || "anónimo",
+        total: totalPedido,
+        productos: carrito
+      }]);
+
+      if (insertError) console.error("⚠️ Error al guardar en Supabase:", insertError);
+      else console.log("✅ Venta registrada correctamente en Supabase");
+
       if (window.bloquearMapaPago) window.bloquearMapaPago();
 
+      // === 3️⃣ Generar PDF de comprobante ===
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       doc.setFontSize(14);
@@ -110,4 +126,7 @@
       verifyBtn.disabled = false;
     }
   });
-})();
+}; 
+
+// Llamar a la función
+window.initPagoVerificar();
