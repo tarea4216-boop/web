@@ -114,12 +114,18 @@
     qrContainer.dataset.lng = selectedLatLng.lng;
     qrContainer.dataset.uid = currentUser.uid;
 
-    if (!document.getElementById("verificadorScript")) {
-      const script = document.createElement('script');
-      script.id = "verificadorScript";
-      script.src = 'assets/pago_verificar.js';
-      document.body.appendChild(script);
-    }
+if (!document.getElementById("verificadorScript")) {
+  const script = document.createElement('script');
+  script.id = "verificadorScript";
+  script.type = "module"; // 🔥 permite usar import/export dentro del script
+  script.src = 'assets/pago_verificar.js';
+  script.onload = () => console.log("✅ pago_verificar.js cargado correctamente");
+  document.body.appendChild(script);
+} else {
+  if (window.initPagoVerificar) window.initPagoVerificar();
+}
+
+
 
     localStorage.removeItem(STORAGE_KEY);
   });
