@@ -70,36 +70,75 @@
   }
 
   // === Click en el mapa ===
-  map.on('click', function (e) {
-    if (pagoConfirmado) {
-      showToast("✅ El pago ya fue confirmado. No puedes cambiar la ubicación.", "info");
+map.on('click', function (e) {
+  if (pagoConfirmado) {
+    showToast("✅ El pago ya fue confirmado. No puedes cambiar la ubicación.", "info");
+    return;
+  }
+
+  if (marker) map.removeLayer(marker);
+  marker = L.marker(e.latlng).addTo(map);
+  selectedLatLng = e.latlng;
+
+  if (!checkCoverage(selectedLatLng)) {
+    coverageMsg.textContent = '⚠️ Fuera de cobertura.';
+    qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
+    showToast("⚠️ Estás fuera del área de entrega.", "error");
+    return;
+  }
+
+  coverageMsg.textContent = '✅ Dentro de cobertura. Completa tus datos para continuar.';
+  showToast("✅ Ubicación dentro del área de entrega", "success");
+
+  // === Formulario de datos personales ===
+  qrContainer.innerHTML = `
+    <h4>Datos para la entrega</h4>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:400px;">
+      <input type="text" id="cliente-nombre" placeholder="👤 Nombre completo" style="padding:10px;border-radius:6px;border:1px solid #ccc;">
+      <input type="tel" id="cliente-celular" placeholder="📱 Número de celular" maxlength="9" style="padding:10px;border-radius:6px;border:1px solid #ccc;">
+      <textarea id="cliente-referencia" placeholder="🏠 Referencias del lugar (ej. casa verde frente al parque)" rows="2" style="padding:10px;border-radius:6px;border:1px solid #ccc;"></textarea>
+      <button id="continuar-pago" class="btn primary">Continuar al pago</button>
+    </div>
+  `;
+
+  // Guardar ubicación
+  qrContainer.dataset.lat = selectedLatLng.lat;
+  qrContainer.dataset.lng = selectedLatLng.lng;
+  qrContainer.dataset.total = total;
+  qrContainer.dataset.uid = currentUser.uid;
+
+  // Botón continuar
+  document.getElementById('continuar-pago').addEventListener('click', () => {
+    const nombre = document.getElementById('cliente-nombre').value.trim();
+    const celular = document.getElementById('cliente-celular').value.trim();
+    const referencia = document.getElementById('cliente-referencia').value.trim();
+
+    if (!nombre || !celular) {
+      showToast("⚠️ Ingresa tu nombre y número de celular.", "error");
+      return;
+    }
+    if (celular.length < 9 || !/^[0-9]+$/.test(celular)) {
+      showToast("⚠️ El número de celular no es válido.", "error");
       return;
     }
 
-    if (marker) map.removeLayer(marker);
-    marker = L.marker(e.latlng).addTo(map);
-    selectedLatLng = e.latlng;
-
-    if (!checkCoverage(selectedLatLng)) {
-      coverageMsg.textContent = '⚠️ Fuera de cobertura.';
-      qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
-      showToast("⚠️ Estás fuera del área de entrega.", "error");
-      return;
-    }
-
-    coverageMsg.textContent = '✅ Dentro de cobertura. Puedes proceder al pago.';
-    showToast("✅ Ubicación dentro del área de entrega", "success");
+    // Actualizar dataset con los datos del cliente
+    qrContainer.dataset.nombre = nombre;
+    qrContainer.dataset.celular = celular;
+    qrContainer.dataset.referencia = referencia;
 
     // Actualizar comentarios de los productos
     const cartWithComments = cart.map((it, index) => {
       const textarea = document.getElementById(`comentario-${index}`);
       return { ...it, comentario: textarea?.value?.trim() || "" };
     });
+    qrContainer.dataset.cart = JSON.stringify(cartWithComments);
 
-    // Mostrar QR
+    // === Mostrar QR de pago ===
     qrContainer.innerHTML = `
       <h4>Resumen de tu pedido</h4>
-      <p><b>ID Pedido:</b> ${currentUser.uid}</p>
+      <p><b>Cliente:</b> ${nombre}</p>
+      <p><b>Celular:</b> ${celular}</p>
       <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
       <p>Escanea este código QR con Yape o BCP para realizar el pago.</p>
       <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
@@ -108,27 +147,21 @@
       </p>
     `;
 
-    qrContainer.dataset.total = total;
-    qrContainer.dataset.cart = JSON.stringify(cartWithComments);
-    qrContainer.dataset.lat = selectedLatLng.lat;
-    qrContainer.dataset.lng = selectedLatLng.lng;
-    qrContainer.dataset.uid = currentUser.uid;
-
-if (!document.getElementById("verificadorScript")) {
-  const script = document.createElement('script');
-  script.id = "verificadorScript";
-  script.type = "module"; // 🔥 permite usar import/export dentro del script
-  script.src = 'assets/pago_verificar.js';
-  script.onload = () => console.log("✅ pago_verificar.js cargado correctamente");
-  document.body.appendChild(script);
-} else {
-  if (window.initPagoVerificar) window.initPagoVerificar();
-}
-
-
+    if (!document.getElementById("verificadorScript")) {
+      const script = document.createElement('script');
+      script.id = "verificadorScript";
+      script.type = "module";
+      script.src = 'assets/pago_verificar.js';
+      script.onload = () => console.log("✅ pago_verificar.js cargado correctamente");
+      document.body.appendChild(script);
+    } else {
+      if (window.initPagoVerificar) window.initPagoVerificar();
+    }
 
     localStorage.removeItem(STORAGE_KEY);
   });
+});
+
 
   if (window.opener && window.opener.cart) {
     window.opener.cart.clear?.();
