@@ -7,36 +7,40 @@ import Swiper from 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.mjs
 async function renderMasVendidos() {
   const grid = document.getElementById('destGrid');
   try {
-    const { data: ventas, error: ventasError } = await supabase.from('ventas').select('productos');
+    grid.innerHTML = "<p class='muted'>Cargando productos destacados...</p>";
+
+    // 1️⃣ Traer todas las ventas registradas
+    const { data: ventas, error: ventasError } = await supabase
+      .from('ventas')
+      .select('productos');
 
     if (ventasError) throw ventasError;
 
+    // 2️⃣ Crear un mapa de conteo por ID o nombre del producto
     const contador = new Map();
-
-    // Recorre todas las ventas y acumula las cantidades por nombre de producto
     ventas?.forEach(v => {
       (v.productos || []).forEach(item => {
-        const nombre = item.nombre || "Sin nombre";
-        const cantidad = (contador.get(nombre) || 0) + (item.qty || 1);
-        contador.set(nombre, cantidad);
+        const clave = item.id || item.nombre || "Desconocido";
+        const cantidad = (contador.get(clave) || 0) + (item.qty || 1);
+        contador.set(clave, cantidad);
       });
     });
 
-    // Carga todos los productos del catálogo
+    // 3️⃣ Cargar todos los productos del catálogo
     const productos = await fetchAll('productos_web');
 
-    // Asocia las ventas acumuladas con los productos
+    // 4️⃣ Vincular ventas acumuladas con productos
     const productosOrdenados = productos
       .map(p => ({
         ...p,
-        ventas: contador.get(p.nombre) || 0
+        ventas: contador.get(p.id) || contador.get(p.nombre) || 0
       }))
-      .sort((a, b) => b.ventas - a.ventas) // orden descendente
+      .sort((a, b) => b.ventas - a.ventas)
       .slice(0, 6);
 
+    // 5️⃣ Renderizado dinámico
     if (!productosOrdenados.length) {
-      grid.innerHTML = "<p class='muted'>No hay productos para mostrar.</p>";
-      showToast("⚠️ No hay productos disponibles todavía", "info");
+      grid.innerHTML = "<p class='muted'>No hay productos disponibles.</p>";
       return;
     }
 
@@ -52,30 +56,27 @@ async function renderMasVendidos() {
       </article>
     `).join('');
 
-    showToast("✅ Productos más vendidos actualizados", "success");
+    console.log("✅ Productos destacados actualizados:", productosOrdenados);
   } catch (e) {
-    console.error("Error al cargar los productos más vendidos:", e);
-    showToast("❌ Error al cargar productos más vendidos", "error");
+    console.error("❌ Error al cargar los productos más vendidos:", e);
+    showToast("❌ Error al cargar productos destacados", "error");
   }
 }
 
-// === 🔔 Escucha en tiempo real los cambios en la tabla 'ventas' ===
+// === 🔔 SUSCRIPCIÓN EN TIEMPO REAL (corrigida) ===
 function suscribirVentasRealtime() {
   const canal = supabase
     .channel('ventas-realtime')
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'ventas' },
-      async payload => {
-        console.log("🆕 Nueva venta detectada:", payload.new);
-        showToast("🆕 Nueva venta registrada, actualizando ranking...", "info");
-        await renderMasVendidos(); // Recarga los más vendidos
-      }
-    )
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'ventas' }, async payload => {
+      console.log("🆕 Cambio detectado en 'ventas':", payload);
+      showToast("🔄 Actualizando productos más vendidos...", "info");
+      await renderMasVendidos();
+    })
     .subscribe();
 
-  console.log("👂 Suscripción Realtime a 'ventas' activa");
+  console.log("👂 Suscripción en tiempo real a 'ventas' activa");
 }
+
 
 // === 🧩 Carga inicial de toda la página ===
 async function loadHome() {
