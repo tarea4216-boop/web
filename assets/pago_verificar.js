@@ -1,7 +1,6 @@
 import { supabase } from './supabaseClient.js';
 
 window.initPagoVerificar = async function () {
-
   const qrContainer = document.getElementById('qr');
   if (!qrContainer) return;
 
@@ -15,7 +14,7 @@ window.initPagoVerificar = async function () {
     <p>Por favor, sube la captura del pago realizado en Yape o BCP.</p>
     <input type="file" id="capture-input" accept="image/*" style="margin-top:8px;">
     <button id="verify-btn" class="btn primary" style="margin-top:10px;">Verificar pago</button>
-    <div id="verify-status" style="margin-top:1rem; font-weight:bold;"></div>
+    <div id="verify-status" style="margin-top:1rem;font-weight:bold;"></div>
   `;
   qrContainer.appendChild(uploadContainer);
 
@@ -25,10 +24,9 @@ window.initPagoVerificar = async function () {
   const statusDiv = document.getElementById('verify-status');
 
   let selectedFile = null;
-  let usuarioActual = null;
+  inputFile.addEventListener('change', e => selectedFile = e.target.files[0]);
 
-  // === Datos del pedido recibidos desde pago.js ===
-  const pedidoId = qrContainer.dataset.uid;
+  const pedidoId = qrContainer.dataset.pedidoId || `pedido-${Date.now()}`;
   const totalPedido = parseFloat(qrContainer.dataset.total || "0");
   const carrito = JSON.parse(qrContainer.dataset.cart || "[]");
   const lat = parseFloat(qrContainer.dataset.lat);
@@ -36,16 +34,8 @@ window.initPagoVerificar = async function () {
   const clienteNombre = qrContainer.dataset.nombre || "Sin nombre";
   const clienteCelular = qrContainer.dataset.celular || "Sin celular";
   const clienteReferencia = qrContainer.dataset.referencia || "";
+  const clienteUid = qrContainer.dataset.uid || "anónimo";
 
-  inputFile.addEventListener('change', (e) => {
-    selectedFile = e.target.files[0];
-  });
-
-  auth.onAuthStateChanged(user => {
-    usuarioActual = user;
-  });
-
-  // === Botón verificar pago ===
   verifyBtn.addEventListener('click', async () => {
     if (!selectedFile) {
       showToast("⚠️ Selecciona una imagen del comprobante.", "info");
@@ -59,23 +49,21 @@ window.initPagoVerificar = async function () {
       // === OCR con Tesseract ===
       const result = await Tesseract.recognize(selectedFile, 'spa');
       const text = result.data.text.toLowerCase();
-      console.log("📄 Texto detectado:", text);
-
-      const montoMatch = text.match(/s\/\s*([\d,.]+)/);
+      const montoMatch = text.match(/s\/\\s*([\\d,.]+)/);
       const montoPagado = montoMatch ? parseFloat(montoMatch[1].replace(',', '.')) : null;
 
       if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
-      if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total del pedido.");
+      if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total.");
 
-      // === 1️⃣ Guardar pedido en Firebase con datos del cliente ===
+      // === 1️⃣ Guardar pedido en Firebase (idéntico al original) ===
       const refNuevo = db.ref("pedidosOnline").push();
       await refNuevo.set({
-        idTemporal: pedidoId,
+        idTemporal: clienteUid, // mismo campo que la versión original
         total: totalPedido,
         estado: "confirmado",
         tipo_pedido: "online",
         cliente: {
-          uid: usuarioActual?.uid || "anónimo",
+          uid: clienteUid,
           nombre: clienteNombre,
           celular: clienteCelular,
           referencia: clienteReferencia
@@ -92,25 +80,21 @@ window.initPagoVerificar = async function () {
         }
       });
 
-      // === 2️⃣ Registrar venta en SUPABASE ===
+      console.log("✅ Pedido guardado correctamente en Firebase");
+
+      // === 2️⃣ Registrar venta en SUPABASE (según tu tabla real) ===
       const { error: insertError } = await supabase.from('ventas').insert([{
         id_pedido: pedidoId,
-        nombre_cliente: clienteNombre,
-        celular_cliente: clienteCelular,
-        referencia: clienteReferencia,
+        cliente: clienteNombre,
         total: totalPedido,
-        tipo_pedido: "online",
-        metodo_pago: "Yape/BCP",
-        productos: carrito
+        productos: carrito,
+        fecha: new Date().toISOString()
       }]);
 
-      if (insertError) console.error("⚠️ Error al guardar en Supabase:", insertError);
-      else console.log("✅ Venta registrada correctamente en Supabase");
+      if (insertError) throw insertError;
+      console.log("✅ Venta registrada correctamente en Supabase");
 
-      // Bloquear interacción con el mapa
-      if (window.bloquearMapaPago) window.bloquearMapaPago();
-
-      // === 3️⃣ Generar PDF de comprobante ===
+      // === 3️⃣ Generar PDF del comprobante ===
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       doc.setFontSize(14);
@@ -136,19 +120,22 @@ window.initPagoVerificar = async function () {
       doc.save(`Pedido_${pedidoId}.pdf`);
 
       // === 4️⃣ Mensaje final ===
-      showToast("🎉 Pago confirmado con éxito. Comprobante descargado.", "success");
+      if (window.bloquearMapaPago) window.bloquearMapaPago();
+
+      showToast("🎉 Pago confirmado. Comprobante descargado.", "success");
       qrContainer.innerHTML = `
         <h3>🎉 Pago confirmado con éxito</h3>
         <p>Tu pedido fue guardado y enviado a cocina.</p>
-        <p>Se ha descargado un comprobante en formato PDF.</p>
+        <p>Se ha descargado un comprobante PDF.</p>
         <p><b>Cliente:</b> ${clienteNombre}<br>
            <b>Celular:</b> ${clienteCelular}<br>
-           <b>Referencia:</b> ${clienteReferencia || "—"}</p>
+           <b>Referencia:</b> ${clienteReferencia || "—"}<br>
+           <b>Total:</b> S/ ${totalPedido.toFixed(2)}</p>
       `;
 
     } catch (err) {
       console.error("❌ Error en verificación:", err);
-      statusDiv.textContent = "❌ Error: " + err.message;
+      statusDiv.textContent = "❌ " + err.message;
       showToast("❌ " + err.message, "error");
       verifyBtn.disabled = false;
     }
