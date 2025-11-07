@@ -1,3 +1,4 @@
+// === REFERENCIAS DEL MODAL ===
 const modal = document.getElementById("productModal");
 const modalImage = document.getElementById("modalImage");
 const modalTitle = document.getElementById("modalTitle");
@@ -7,70 +8,88 @@ const addToCartBtn = document.getElementById("addToCartBtn");
 
 let currentItem = null;
 
-// Delegación: abrir modal solo si se hace click en tarjeta (no en el botón "Agregar")
+// === HORARIO DE ATENCIÓN ===
+function estaDentroDelHorario() {
+  const ahora = new Date();
+  const hora = ahora.getHours() + ahora.getMinutes() / 60;
+  return hora >= 9 && hora < 18;
+}
+
+// === ABRIR MODAL ===
 document.addEventListener("click", (e) => {
+  // No abrir si clic en el botón "Agregar"
   const addBtn = e.target.closest("[data-add]");
-  if (addBtn) {
-    // Si es botón "Agregar", dejamos que menu.js maneje el carrito y no abrimos modal
+  if (addBtn) return;
+
+  // Buscar el contenedor de producto
+  const item = e.target.closest(".carousel-item");
+  if (!item || !modal) return;
+
+  // Evitar abrir fuera del horario
+  if (!estaDentroDelHorario()) {
+    showToast("⚠️ Fuera de horario. El restaurante atiende de 10:00 a 18:00.", "error");
     return;
   }
 
-  const item = e.target.closest(".carousel-item");
-  if (item) {
-    currentItem = item;
+  currentItem = item;
 
-    // Datos desde la tarjeta
-    const img = item.querySelector("img")?.src || "";
-    const title = item.querySelector(".title")?.textContent || "Producto";
-    const desc = item.querySelector(".muted")?.textContent || "";
-    const price = item.querySelector(".price")?.textContent || "";
+  const img = item.querySelector("img")?.src || "";
+  const title = item.querySelector(".title")?.textContent || "Producto";
+  const desc = item.querySelector(".muted")?.textContent || "";
+  const price = item.querySelector(".price")?.textContent || "";
 
-    // Cargar en modal
-    modalImage.src = img;
-    modalTitle.textContent = title;
-    modalDesc.textContent = desc;
-    modalPrice.textContent = price;
+  modalImage.src = img;
+  modalTitle.textContent = title;
+  modalDesc.textContent = desc;
+  modalPrice.textContent = price;
 
-    modal.style.display = "flex";
-  }
+  modal.style.display = "flex";
 });
 
-// Cerrar modal si se hace click fuera
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
-});
-
-// Botón "Agregar al carrito" dentro del modal
-addToCartBtn.addEventListener("click", () => {
-  if (!currentItem) return;
-
-  const id = currentItem.querySelector("[data-add]")?.getAttribute("data-add");
-  if (!id) return;
-
-  // Buscar producto en PRODUCTS (expuesto en menu.js)
-  const product = window.PRODUCTS?.find(p => p.id === id);
-  if (product && window.cart) {
-    window.cart.add({
-      id: product.id,
-      nombre: product.nombre,
-      precio: product.precio,
-      imagen_url: product.imagen_url,
-      qty: 1
-    });
-    // notifica UI del cambio de carrito
-    window.dispatchEvent(new Event("cart:change"));
-
-    // <-- NUEVO: dispara evento personalizado para la animación
-    // enviamos el elemento <img> del modal para que el listener lo use
-    try {
-      document.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } }));
-    } catch (err) {
-      // fallback a window si por alguna razón document falla
-      try { window.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } })); } catch (e) {}
+// === CERRAR MODAL ===
+if (modal) {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
     }
-  }
+  });
+}
 
-  modal.style.display = "none";
-});
+// === AGREGAR AL CARRITO ===
+if (addToCartBtn) {
+  addToCartBtn.addEventListener("click", () => {
+    if (!estaDentroDelHorario()) {
+      showToast("⚠️ El restaurante abre a las 10:00 a.m.", "error");
+      return;
+    }
+
+    if (!currentItem) return;
+    const id = currentItem.querySelector("[data-add]")?.getAttribute("data-add");
+    if (!id) return;
+
+    const product = window.PRODUCTS?.find(p => p.id === id);
+    if (product && window.cart) {
+      window.cart.add({
+        id: product.id,
+        nombre: product.nombre,
+        precio: product.precio,
+        imagen_url: product.imagen_url,
+        qty: 1
+      });
+      window.dispatchEvent(new Event("cart:change"));
+
+      // ✨ Animación o efecto opcional (si existe)
+      try {
+        document.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } }));
+      } catch {
+        window.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } }));
+      }
+
+      showToast(`🛒 ${product.nombre} agregado al carrito`, "success");
+    } else {
+      showToast("⚠️ No se pudo agregar el producto", "error");
+    }
+
+    modal.style.display = "none";
+  });
+}
