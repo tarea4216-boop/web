@@ -3,6 +3,83 @@ import { fetchAll } from './supabaseClient.js';
 import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
+// === HORARIO DE ATENCIÓN ===
+const HORARIO = { apertura: 9, cierre: 18 }; // 9:00 a 18:00 (6 pm)
+
+function estaDentroDelHorario() {
+  const ahora = new Date();
+  const hora = ahora.getHours() + ahora.getMinutes() / 60;
+  return hora >= HORARIO.apertura && hora < HORARIO.cierre;
+}
+
+function mostrarAvisoFueraHorario() {
+  const container = document.createElement("div");
+  container.className = "toast central-warning";
+  container.innerHTML = `
+    <div class="toast-content">
+      <strong>⚠️ Fuera de horario</strong>
+      <p>El restaurante atiende desde las 10:00 a.m. hasta las 6:00 p.m.</p>
+      <button id="avisoAceptarBtn" class="btn primary" style="margin-top:10px">Aceptar</button>
+    </div>
+  `;
+  Object.assign(container.style, {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: "5000",
+    background: "white",
+    color: "#222",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+    textAlign: "center",
+    maxWidth: "300px",
+  });
+  document.body.appendChild(container);
+  document.getElementById("avisoAceptarBtn").addEventListener("click", () => container.remove());
+}
+
+function deshabilitarFueraHorario() {
+  document.querySelectorAll('[data-add]').forEach(btn => {
+    btn.disabled = true;
+    btn.classList.add('disabled');
+  });
+
+  const botones = [
+    document.getElementById('checkoutBtn'),
+    document.getElementById('clearCart'),
+    document.getElementById('floatingCart')
+  ];
+
+  botones.forEach(btn => {
+    if (btn) {
+      btn.disabled = true;
+      btn.classList.add('disabled');
+    }
+  });
+}
+
+function habilitarSiAbierto() {
+  document.querySelectorAll('[data-add]').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('disabled');
+  });
+
+  const botones = [
+    document.getElementById('checkoutBtn'),
+    document.getElementById('clearCart'),
+    document.getElementById('floatingCart')
+  ];
+
+  botones.forEach(btn => {
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove('disabled');
+    }
+  });
+}
+
 // === VARIABLES GLOBALES ===
 let PRODUCTS = [];
 
@@ -14,10 +91,9 @@ const cartTotalEl = document.getElementById('cartTotal');
 const clearBtn = document.getElementById('clearCart');
 const checkoutBtn = document.getElementById('checkoutBtn');
 
-// === CONFIGURACIÓN DE WHATSAPP ===
-const WHATSAPP_NUMBER = "51986556773"; // ← cámbialo si deseas otro número
+const WHATSAPP_NUMBER = "51986556773";
 
-// === INICIALIZACIÓN DE CARRUSEL ===
+// === CARRUSEL ===
 function ensureInitCarousel(container) {
   if (!container) return;
 
@@ -39,21 +115,7 @@ function ensureInitCarousel(container) {
     };
     s.onerror = () => console.warn('No se pudo cargar carousel.js');
     document.head.appendChild(s);
-    return;
   }
-
-  // Espera máxima 3s
-  const maxWait = 3000;
-  const interval = 100;
-  let waited = 0;
-  const t = setInterval(() => {
-    if (typeof window.initCarousel === 'function') {
-      clearInterval(t);
-      window.initCarousel(container);
-    }
-    waited += interval;
-    if (waited >= maxWait) clearInterval(t);
-  }, interval);
 }
 
 // === RENDERIZADO DE PRODUCTOS ===
@@ -99,9 +161,13 @@ function renderProducts(list) {
     ensureInitCarousel(section.querySelector('.carousel-container'));
   });
 
-  // === EVENTO: AGREGAR AL CARRITO ===
   grid.querySelectorAll('[data-add]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (!estaDentroDelHorario()) {
+        showToast("⚠️ El restaurante abre a las 10:00 a.m.", "error");
+        return;
+      }
+
       const id = btn.getAttribute('data-add');
       const product = PRODUCTS.find(x => x.id === id);
       if (product) {
@@ -112,8 +178,6 @@ function renderProducts(list) {
           imagen_url: product.imagen_url,
           qty: 1
         });
-
-        // ✅ Notificación
         showToast(`🛒 ${product.nombre} agregado al carrito`, "success");
         window.dispatchEvent(new Event('cart:change'));
       } else {
@@ -203,15 +267,11 @@ async function main() {
     await mountChrome();
     initFloatingCart();
 
-    // 🔹 Sincroniza carrito localStorage ↔ memoria
     const stored = JSON.parse(localStorage.getItem('camaron_cart_v1') || '[]');
-    if (!stored.length) {
-      cart.clear(); 
-    }
+    if (!stored.length) cart.clear(); 
 
     window.addEventListener('cart:change', renderCart);
 
-    // 🧹 Vaciar carrito
     clearBtn.addEventListener('click', () => {
       if (!cart.items.length) {
         showToast("⚠️ Tu carrito ya está vacío", "info");
@@ -223,14 +283,19 @@ async function main() {
       showToast("🧹 Carrito vaciado correctamente", "success");
     });
 
-    // 🔄 Cargar productos
     PRODUCTS = await fetchAll('productos_web', '*', { order: { col: 'created_at', asc: false } });
     window.PRODUCTS = PRODUCTS;
     window.cart = cart;
 
     renderProducts(PRODUCTS);
-    renderCart();
 
+    const abierto = estaDentroDelHorario();
+    if (!abierto) {
+      mostrarAvisoFueraHorario();
+      deshabilitarFueraHorario();
+    }
+
+    renderCart();
     search.addEventListener('input', filterProducts);
     categoria.addEventListener('change', filterProducts);
 
@@ -245,6 +310,15 @@ async function main() {
       showToast("✅ Redirigiendo al pago...", "success");
       setTimeout(() => (window.location.href = './pago.html'), 600);
     });
+
+    // 🔁 Verificación automática cada minuto
+    setInterval(() => {
+      if (estaDentroDelHorario()) {
+        habilitarSiAbierto();
+      } else {
+        deshabilitarFueraHorario();
+      }
+    }, 60000);
 
   } catch (err) {
     console.error("Error en el menú:", err);
