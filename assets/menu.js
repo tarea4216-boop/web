@@ -18,7 +18,7 @@ function mostrarAvisoFueraHorario() {
   container.innerHTML = `
     <div class="toast-content">
       <strong>⚠️ Fuera de horario</strong>
-      <p>El restaurante atiende desde las 10:00 a.m. hasta las 6:00 p.m.</p>
+      <p>El restaurante atiende desde las 9:00 a.m. hasta las 6:00 p.m.</p>
       <button id="avisoAceptarBtn" class="btn primary" style="margin-top:10px">Aceptar</button>
     </div>
   `;
@@ -287,13 +287,17 @@ async function main() {
     window.PRODUCTS = PRODUCTS;
     window.cart = cart;
 
-    renderProducts(PRODUCTS);
+  renderProducts(PRODUCTS);
 
-    const abierto = estaDentroDelHorario();
-    if (!abierto) {
-      mostrarAvisoFueraHorario();
-      deshabilitarFueraHorario();
-    }
+// Esperar un pequeño tiempo para asegurar que los botones existan
+setTimeout(() => {
+  const abierto = estaDentroDelHorario();
+  if (!abierto) {
+    mostrarAvisoFueraHorario();
+    deshabilitarFueraHorario();
+  }
+}, 300);
+
 
     renderCart();
     search.addEventListener('input', filterProducts);
