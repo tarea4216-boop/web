@@ -267,8 +267,24 @@ async function main() {
     await mountChrome();
     initFloatingCart();
 
+    // 🧹 Limpieza automática del carrito si han pasado más de 30 minutos
+    const LIMPIEZA_MINUTOS = 30; // ⏱️ Tiempo configurable
+    const now = Date.now();
+    const lastVisit = parseInt(localStorage.getItem('cart_last_visit') || '0', 10);
+    const minutesSince = (now - lastVisit) / 60000;
+
+    if (isNaN(minutesSince) || minutesSince > LIMPIEZA_MINUTOS) {
+      cart.clear();
+      localStorage.removeItem('camaron_cart_v1');
+      console.log("🧹 Carrito limpiado automáticamente por inactividad de más de 30 minutos");
+    }
+
+    // ⏱️ Registrar nueva marca de visita
+    localStorage.setItem('cart_last_visit', now.toString());
+
+    // === Eventos y render inicial ===
     const stored = JSON.parse(localStorage.getItem('camaron_cart_v1') || '[]');
-    if (!stored.length) cart.clear(); 
+    if (!stored.length) cart.clear();
 
     window.addEventListener('cart:change', renderCart);
 
@@ -287,17 +303,16 @@ async function main() {
     window.PRODUCTS = PRODUCTS;
     window.cart = cart;
 
-  renderProducts(PRODUCTS);
+    renderProducts(PRODUCTS);
 
-// Esperar un pequeño tiempo para asegurar que los botones existan
-setTimeout(() => {
-  const abierto = estaDentroDelHorario();
-  if (!abierto) {
-    mostrarAvisoFueraHorario();
-    deshabilitarFueraHorario();
-  }
-}, 300);
-
+    // Esperar un pequeño tiempo para asegurar que los botones existan
+    setTimeout(() => {
+      const abierto = estaDentroDelHorario();
+      if (!abierto) {
+        mostrarAvisoFueraHorario();
+        deshabilitarFueraHorario();
+      }
+    }, 300);
 
     renderCart();
     search.addEventListener('input', filterProducts);
@@ -315,7 +330,7 @@ setTimeout(() => {
       setTimeout(() => (window.location.href = './pago.html'), 600);
     });
 
-    // 🔁 Verificación automática cada minuto
+    // 🔁 Verificación automática cada minuto del horario
     setInterval(() => {
       if (estaDentroDelHorario()) {
         habilitarSiAbierto();
@@ -329,6 +344,7 @@ setTimeout(() => {
     showToast("❌ Error al cargar el menú", "error");
   }
 }
+
 
 // 🚀 Ejecutar
 main();
