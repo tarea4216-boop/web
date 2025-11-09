@@ -402,3 +402,63 @@ p {
   to { opacity: 1; transform: scale(1); }
 }
 
+button.disabled, .btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* ==== Overlay del mensaje fijo fuera de horario ==== */
+#bloqueoMenu {
+  animation: overlayFadeIn 0.7s ease-out forwards;
+  pointer-events: none; /* evita que bloquee clics del sitio */
+}
+
+#bloqueoMenu .bloqueo-contenido {
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+}
+
+#bloqueoMenu .icono {
+  font-size: 2.4rem;
+  animation: pulse 2.5s infinite ease-in-out;
+  margin-bottom: 8px;
+}
+
+#bloqueoMenu h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+#bloqueoMenu p {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  color: #333;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* ==== Efecto visual para el menú bloqueado ==== */
+.menu-bloqueado {
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity 0.6s ease;
+  filter: blur(2px);
+}
