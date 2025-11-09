@@ -7,55 +7,30 @@ import { cart, cartTotal } from './cart.js';
 const HORARIO = { apertura: 9, cierre: 18 };
 let FUERA_DE_HORARIO = false;
 
+// === FUNCIONES DE HORARIO ===
 function estaDentroDelHorario() {
   const ahora = new Date();
   const hora = ahora.getHours() + ahora.getMinutes() / 60;
   return hora >= HORARIO.apertura && hora < HORARIO.cierre;
 }
 
+// ✅ Eliminamos el toast de aviso y solo dejamos el mensaje superior
 function mostrarAvisoFueraHorario() {
-  if (document.querySelector(".central-warning")) return;
+  // No hace nada visual, solo evita duplicaciones
   FUERA_DE_HORARIO = true;
-
-  const container = document.createElement("div");
-  container.className = "toast central-warning";
-  container.innerHTML = `
-    <div class="toast-content">
-      <strong>⚠️ Fuera de horario</strong>
-      <p>El restaurante atiende de 9:00 a.m. a 6:00 p.m.</p>
-      <button id="avisoAceptarBtn" class="btn primary" style="margin-top:10px">Aceptar</button>
-    </div>
-  `;
-  Object.assign(container.style, {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    zIndex: "9999",
-    background: "white",
-    color: "#222",
-    padding: "20px",
-    borderRadius: "12px",
-    boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
-    textAlign: "center",
-    maxWidth: "300px",
-    width: "90vw"
-  });
-  document.body.appendChild(container);
-
-  document.getElementById("avisoAceptarBtn").addEventListener("click", () => {
-    container.remove();
-    showToast("⚠️ Las compras están desactivadas fuera del horario de atención.", "info");
-  });
 }
 
+// ✅ Deshabilita todo lo interactivo y muestra el aviso fijo
 function deshabilitarFueraHorario() {
   FUERA_DE_HORARIO = true;
+
+  // Deshabilitar botones del menú
   document.querySelectorAll('[data-add]').forEach(btn => {
     btn.setAttribute('disabled', 'true');
     btn.classList.add('disabled');
   });
 
+  // Deshabilitar carrito
   ["checkoutBtn", "clearCart", "floatingCart"].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
@@ -63,15 +38,69 @@ function deshabilitarFueraHorario() {
       btn.classList.add('disabled');
     }
   });
+
+  // 🚫 Deshabilitar buscador y filtro de categoría
+  const search = document.getElementById("search");
+  const categoria = document.getElementById("categoria");
+  if (search) {
+    search.setAttribute('disabled', 'true');
+    search.classList.add('disabled');
+  }
+  if (categoria) {
+    categoria.setAttribute('disabled', 'true');
+    categoria.classList.add('disabled');
+  }
+
+  // Mostrar aviso fijo en la parte superior (debajo del header)
+  if (!document.getElementById("bloqueoMenu")) {
+    const overlay = document.createElement("div");
+    overlay.id = "bloqueoMenu";
+    overlay.innerHTML = `
+      <div class="bloqueo-contenido">
+        <div class="icono">🍽️</div>
+        <h2>Estamos cerrados por ahora</h2>
+        <p>Horario de atención:<br><strong>9:00 a.m. - 6:00 p.m.</strong></p>
+      </div>
+    `;
+
+    Object.assign(overlay.style, {
+      position: "fixed",
+      top: "90px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "rgba(255,255,255,0.9)",
+      backdropFilter: "blur(8px)",
+      border: "1px solid rgba(0,0,0,0.1)",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      padding: "18px 26px",
+      borderRadius: "14px",
+      zIndex: "3000",
+      textAlign: "center",
+      color: "#222",
+      animation: "overlayFadeIn 0.8s ease-out forwards",
+    });
+
+    document.body.appendChild(overlay);
+  }
+
+  // Aplicar efecto visual al grid del menú
+  const grid = document.getElementById("menuGrid");
+  if (grid && !grid.classList.contains("menu-bloqueado")) {
+    grid.classList.add("menu-bloqueado");
+  }
 }
 
+// ✅ Rehabilita todo cuando el restaurante está abierto
 function habilitarSiAbierto() {
   FUERA_DE_HORARIO = false;
+
+  // Habilitar botones del menú
   document.querySelectorAll('[data-add]').forEach(btn => {
     btn.removeAttribute('disabled');
     btn.classList.remove('disabled');
   });
 
+  // Habilitar carrito
   ["checkoutBtn", "clearCart", "floatingCart"].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
@@ -79,6 +108,20 @@ function habilitarSiAbierto() {
       btn.classList.remove('disabled');
     }
   });
+
+  // Habilitar buscador y categoría
+  const search = document.getElementById("search");
+  const categoria = document.getElementById("categoria");
+  if (search) search.removeAttribute('disabled');
+  if (categoria) categoria.removeAttribute('disabled');
+
+  // Quitar aviso fijo
+  const bloqueo = document.getElementById("bloqueoMenu");
+  if (bloqueo) bloqueo.remove();
+
+  // Quitar efecto visual del menú
+  const grid = document.getElementById("menuGrid");
+  if (grid) grid.classList.remove("menu-bloqueado");
 }
 
 // === VARIABLES GLOBALES ===
@@ -91,7 +134,6 @@ const cartList = document.getElementById('cartList');
 const cartTotalEl = document.getElementById('cartTotal');
 const clearBtn = document.getElementById('clearCart');
 const checkoutBtn = document.getElementById('checkoutBtn');
-
 const WHATSAPP_NUMBER = "51986556773";
 
 // === CARRUSEL ===
