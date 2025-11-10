@@ -4,7 +4,7 @@ import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
 // === HORARIO DE ATENCIÓN ===
-const HORARIO = { apertura: 10, cierre: 18 };
+const HORARIO = { apertura: 9, cierre: 18 };
 let FUERA_DE_HORARIO = false;
 
 // === FUNCIONES DE HORARIO ===
@@ -19,7 +19,6 @@ function mostrarAvisoFueraHorario() {
   FUERA_DE_HORARIO = true;
 }
 
-// ✅ Deshabilita todo lo interactivo y muestra el aviso fijo
 function deshabilitarFueraHorario() {
   FUERA_DE_HORARIO = true;
 
@@ -41,16 +40,10 @@ function deshabilitarFueraHorario() {
   // 🚫 Deshabilitar buscador y filtro de categoría
   const search = document.getElementById("search");
   const categoria = document.getElementById("categoria");
-  if (search) {
-    search.setAttribute('disabled', 'true');
-    search.classList.add('disabled');
-  }
-  if (categoria) {
-    categoria.setAttribute('disabled', 'true');
-    categoria.classList.add('disabled');
-  }
+  if (search) search.setAttribute('disabled', 'true');
+  if (categoria) categoria.setAttribute('disabled', 'true');
 
-  // Mostrar aviso fijo en la parte superior (debajo del header o menú)
+  // Mostrar aviso fijo debajo del encabezado
   if (!document.getElementById("bloqueoMenu")) {
     const overlay = document.createElement("div");
     overlay.id = "bloqueoMenu";
@@ -62,10 +55,9 @@ function deshabilitarFueraHorario() {
       </div>
     `;
 
-    // 📍 Cambiado a posición absoluta para no tapar el header
     Object.assign(overlay.style, {
-      position: "absolute",
-      top: "calc(var(--header-height, 100px) + 10px)",
+      position: "fixed",
+      top: "calc(var(--header-height, 100px) + 4px)",
       left: "50%",
       transform: "translateX(-50%)",
       background: "rgba(255,255,255,0.95)",
@@ -74,7 +66,7 @@ function deshabilitarFueraHorario() {
       boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
       padding: "18px 26px",
       borderRadius: "14px",
-      zIndex: "999",
+      zIndex: "3000",
       textAlign: "center",
       color: "#222",
       transition: "top 0.4s ease",
@@ -85,27 +77,26 @@ function deshabilitarFueraHorario() {
 
     document.body.appendChild(overlay);
 
-    // 👁️ Observa si el menú hamburguesa se abre para ajustar la posición
+    // 👁️ Si se abre el menú hamburguesa, baja el mensaje
     const navMenu = document.querySelector('.nav-menu, .menu-lateral, nav');
     if (navMenu) {
       const observer = new MutationObserver(() => {
-        const isOpen =
+        const abierto =
           navMenu.classList.contains('open') ||
           navMenu.style.display === 'block';
-        overlay.style.top = isOpen
-          ? "calc(var(--menu-height, 400px) + 20px)"
-          : "calc(var(--header-height, 100px) + 10px)";
+        overlay.style.top = abierto
+          ? "calc(var(--menu-height, 400px) + 8px)"
+          : "calc(var(--header-height, 100px) + 4px)";
       });
       observer.observe(navMenu, { attributes: true, attributeFilter: ['class', 'style'] });
     }
   }
 
-  // Aplicar efecto visual al grid del menú
+  // Apagar interacciones del grid del menú
   const grid = document.getElementById("menuGrid");
-  if (grid && !grid.classList.contains("menu-bloqueado")) {
-    grid.classList.add("menu-bloqueado");
-  }
+  if (grid) grid.classList.add("menu-bloqueado");
 }
+
 
 // ✅ Rehabilita todo cuando el restaurante está abierto
 function habilitarSiAbierto() {
