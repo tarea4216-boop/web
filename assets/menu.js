@@ -57,26 +57,34 @@ function deshabilitarFueraHorario() {
       </div>
     `;
 
-    Object.assign(overlay.style, {
-      position: "fixed",
-      top: "calc(var(--header-height, 100px) + 6px)",
-      left: "50%",
-      transform: "translateX(-50%)",
-      background: "rgba(255,255,255,0.96)",
-      backdropFilter: "blur(8px)",
-      border: "1px solid rgba(0,0,0,0.1)",
-      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-      padding: "18px 26px",
-      borderRadius: "14px",
-      zIndex: "3000",
-      textAlign: "center",
-      color: "#222",
-      animation: "overlayFadeIn 0.8s ease-out forwards",
-      width: "92%",
-      maxWidth: "380px"
-    });
+Object.assign(overlay.style, {
+  position: "absolute",
+  top: "calc(var(--header-height, 100px) + 6px)",
+  left: "50%",
+  transform: "translateX(-50%)",
+  background: "rgba(255,255,255,0.96)",
+  backdropFilter: "blur(8px)",
+  border: "1px solid rgba(0,0,0,0.1)",
+  boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+  padding: "18px 26px",
+  borderRadius: "14px",
+  zIndex: "3000",
+  textAlign: "center",
+  color: "#222",
+  animation: "overlayFadeIn 0.8s ease-out forwards",
+  width: "92%",
+  maxWidth: "380px"
+});
+
 
     document.body.appendChild(overlay);
+
+// Asegurar que esté justo después del header visualmente
+const header = document.querySelector('header');
+if (header && header.parentNode) {
+  header.parentNode.insertBefore(overlay, header.nextSibling);
+}
+
 
     // 👁️ Ajuste dinámico según apertura del menú hamburguesa
     const navMenu = document.querySelector('.nav-menu, .menu-lateral, nav');
