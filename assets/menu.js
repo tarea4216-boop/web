@@ -4,7 +4,7 @@ import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
 // === HORARIO DE ATENCIÓN ===
-const HORARIO = { apertura: 9, cierre: 18 };
+const HORARIO = { apertura: 10, cierre: 18 };
 let FUERA_DE_HORARIO = false;
 
 // === FUNCIONES DE HORARIO ===
@@ -221,30 +221,35 @@ function renderProducts(list) {
     ensureInitCarousel(section.querySelector('.carousel-container'));
   });
 
-  grid.querySelectorAll('[data-add]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (FUERA_DE_HORARIO || !estaDentroDelHorario()) {
-        showToast("⚠️ No se pueden agregar productos fuera del horario de atención.", "error");
-        return;
-      }
+grid.querySelectorAll('[data-add]').forEach(btn => {
+  // Elimina listeners previos (para evitar duplicados)
+  btn.replaceWith(btn.cloneNode(true));
+});
 
-      const id = btn.getAttribute('data-add');
-      const product = PRODUCTS.find(x => x.id === id);
-      if (product) {
-        cart.add({
-          id: product.id,
-          nombre: product.nombre,
-          precio: product.precio,
-          imagen_url: product.imagen_url,
-          qty: 1
-        });
-        showToast(`🛒 ${product.nombre} agregado al carrito`, "success");
-        window.dispatchEvent(new Event('cart:change'));
-      } else {
-        showToast("⚠️ Producto no encontrado", "error");
-      }
-    });
+grid.querySelectorAll('[data-add]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // 🚫 No hacer nada si está deshabilitado visualmente
+    if (btn.disabled || btn.classList.contains('disabled')) return;
+
+    // 🚫 Evitar toast repetido fuera de horario
+    if (FUERA_DE_HORARIO || !estaDentroDelHorario()) return;
+
+    const id = btn.getAttribute('data-add');
+    const product = PRODUCTS.find(x => x.id === id);
+    if (product) {
+      cart.add({
+        id: product.id,
+        nombre: product.nombre,
+        precio: product.precio,
+        imagen_url: product.imagen_url,
+        qty: 1
+      });
+      showToast(`🛒 ${product.nombre} agregado al carrito`, "success");
+      window.dispatchEvent(new Event('cart:change'));
+    }
   });
+});
+
 }
 
 // === FILTRADO DE PRODUCTOS ===
