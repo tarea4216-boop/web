@@ -1,0 +1,426 @@
+/* ================================
+   ✨ INDEX PREMIUM - El Camarón de Oro
+   ================================ */
+
+/* --- Variables globales --- */
+:root {
+  --color-primario: #a86b35;
+  --color-secundario: #d9a66c;
+  --color-fondo: #fffaf4;
+  --color-texto: #3f342c;
+  --color-texto-suave: #7a6855;
+  --radius: 18px;
+  --sombra-suave: 0 4px 15px rgba(0, 0, 0, 0.08);
+  --transicion: 0.3s ease;
+  --fuente: 'Inter', system-ui, sans-serif;
+}
+
+/* --- Base general --- */
+body {
+  font-family: var(--fuente);
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+  overflow-x: hidden;
+}
+
+/* --- Animación de carga --- */
+body.preload {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+body.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Encabezado tipo glass moderno --- */
+.glass-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 200, 150, 0.3);
+  box-shadow: var(--sombra-suave);
+  transition: all 0.4s ease;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 22px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand img {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius);
+  border: 2px solid var(--color-secundario);
+  background-color: #fff;
+}
+.brand h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--color-primario);
+  font-weight: 800;
+}
+.brand small {
+  color: var(--color-texto-suave);
+  font-size: 0.9rem;
+}
+
+/* --- Navegación elegante --- */
+.nav-links a {
+  color: var(--color-texto);
+  font-weight: 600;
+  margin-left: 22px;
+  transition: color var(--transicion), transform var(--transicion);
+  position: relative;
+}
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--color-primario);
+  transform: translateY(-2px);
+}
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--color-secundario);
+  transition: width var(--transicion);
+}
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 100%;
+}
+
+.glass-header.shrink {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 6px 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+.glass-header.shrink img {
+  width: 44px;
+  height: 44px;
+}
+
+/* --- HERO PREMIUM ANIMADO --- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 95vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(120deg, #fff7e3, #fde2b2, #fff7e3);
+  background-size: 300% 300%;
+  animation: gradientFlow 12s ease infinite;
+  box-shadow: inset 0 -20px 40px rgba(0, 0, 0, 0.05);
+  perspective: 1000px;
+}
+
+/* Fondo animado con movimiento sutil */
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Efecto de brillo radial */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(255, 240, 210, 0.6), rgba(255,255,255,0.25) 80%);
+  z-index: 1;
+  animation: pulseLight 10s ease-in-out infinite;
+}
+@keyframes pulseLight {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Contenido animado */
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+  flex-wrap: wrap;
+  padding: 70px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(50px);
+  animation: heroFadeUp 1.4s ease forwards;
+}
+
+@keyframes heroFadeUp {
+  0% { opacity: 0; transform: translateY(50px) rotateX(8deg); }
+  100% { opacity: 1; transform: translateY(0) rotateX(0deg); }
+}
+
+/* Texto animado con entrada secuencial */
+.hero-text {
+  flex: 1;
+  min-width: 300px;
+  opacity: 0;
+  transform: translateX(-40px);
+  animation: textSlideIn 1s ease forwards 0.5s;
+}
+@keyframes textSlideIn {
+  0% { opacity: 0; transform: translateX(-40px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.hero-text h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  color: var(--color-primario);
+  margin-bottom: 14px;
+  text-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  animation: fadeTitle 1.2s ease both 0.6s;
+}
+@keyframes fadeTitle {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-text p {
+  color: var(--color-texto-suave);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  animation: fadeText 1.2s ease both 0.8s;
+}
+@keyframes fadeText {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  opacity: 0;
+  transform: scale(0.95);
+  animation: fadeButtons 1.2s ease forwards 1.2s;
+}
+@keyframes fadeButtons {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Imagen flotante con efecto de entrada */
+.hero-image {
+  flex: 1;
+  text-align: center;
+  transform: translateX(60px);
+  opacity: 0;
+  animation: imageFadeIn 1.4s ease forwards 0.8s, float 4s ease-in-out infinite 2s;
+}
+@keyframes imageFadeIn {
+  0% { opacity: 0; transform: translateX(60px) scale(0.9) rotateY(8deg); }
+  100% { opacity: 1; transform: translateX(0) scale(1) rotateY(0); }
+}
+
+/* Flotación suave y continua */
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+.hero-image img {
+  width: min(520px, 90%);
+  border-radius: 22px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+.hero-image img:hover {
+  transform: scale(1.06);
+  filter: brightness(1.08);
+}
+
+
+/* --- Secciones al hacer scroll --- */
+.section {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.section h2 {
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  color: var(--color-primario);
+  border-left: 6px solid var(--color-secundario);
+  padding-left: 10px;
+  margin-bottom: 20px;
+  text-transform: capitalize;
+}
+
+/* --- Grids y cards --- */
+.grid {
+  display: grid;
+  gap: 24px;
+}
+.cols-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.cols-2 { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--sombra-suave);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+.card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.15);
+}
+.card img {
+  width: 100%;
+  object-fit: cover;
+  transition: transform var(--transicion);
+}
+.card:hover img {
+  transform: scale(1.05);
+}
+.card .body {
+  padding: 16px;
+}
+.card .title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-primario);
+}
+.card .price {
+  margin-top: 8px;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+.card .muted {
+  color: var(--color-texto-suave);
+  font-size: 0.95rem;
+}
+.card .badge {
+  margin-top: 10px;
+  display: inline-block;
+  background: var(--color-secundario);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+/* --- Pie de página --- */
+.footer {
+  background: var(--color-primario);
+  color: #fff;
+  text-align: center;
+  padding: 28px 12px;
+  margin-top: 60px;
+  border-top: 4px solid var(--color-secundario);
+}
+.footer p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+/* --- Responsividad --- */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 900px) {
+  header {
+    padding: 16px;
+  }
+
+  .nav-links {
+    display: none; /* Menú oculto para versiones móviles, puedes agregar un menú tipo hamburguesa luego */
+  }
+
+  .hero-content {
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 40px;
+    padding: 0 20px;
+  }
+
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+
+  .hero-text p {
+    font-size: 1.1rem;
+  }
+
+  .hero-image img {
+    width: 90%;
+    max-width: 450px;
+    margin: 0 auto;
+  }
+}
+
+/* Móviles y pantallas pequeñas */
+@media (max-width: 600px) {
+  body {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-text h1 {
+    font-size: 1.7rem;
+    line-height: 1.3;
+  }
+
+  .hero-text p {
+    font-size: 1rem;
+    margin-top: 8px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .btn.large {
+    width: 90%;
+    max-width: 300px;
+  }
+
+  .hero-image img {
+    width: 100%;
+    max-width: 360px;
+  }
+
+  footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    padding: 20px;
+  }
+}
