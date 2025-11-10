@@ -477,7 +477,7 @@ button.disabled, .btn.disabled {
 @media (max-width: 768px) {
   #bloqueoMenu {
     position: fixed !important;
-    top: calc(70px + env(safe-area-inset-top)) !important; /* asegura que no tape el header */
+    top: calc(90px + env(safe-area-inset-top)) !important; /* asegura que no tape el header */
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
