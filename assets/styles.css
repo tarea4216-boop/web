@@ -327,15 +327,13 @@ p {
   height: 350px;
   border: 0;
 }
-
 /* ===== VARIABLES GLOBALES ===== */
 :root {
   --header-height: 80px;
   --menu-height: 400px;
 }
 
-
-/* Responsive */
+/* ===== Responsive ===== */
 @media (max-width: 600px) {
   #contactInfo .row {
     flex-direction: column;
@@ -351,7 +349,7 @@ p {
   }
 }
 
-/* ===== Animación: imagen volando al carrito (mejorada) ===== */
+/* ===== Animación: imagen volando al carrito ===== */
 .flying-img {
   position: fixed;
   z-index: 2200;
@@ -378,7 +376,7 @@ p {
   transform-origin: center center;
 }
 
-/* pulso / rebote del carrito al recibir el item */
+/* ===== Rebote del carrito ===== */
 @keyframes cartBounce {
   0%   { transform: translateY(0) scale(1); }
   40%  { transform: translateY(-8px) scale(1.08); }
@@ -387,7 +385,7 @@ p {
 }
 .floating-cart-bounce { animation: cartBounce 520ms cubic-bezier(.2,.8,.2,1); }
 
-/* pequeño pop del contador */
+/* ===== Pop del contador ===== */
 @keyframes countPop {
   0%   { transform: scale(1); opacity: 1; }
   40%  { transform: scale(1.35); opacity: 1; }
@@ -407,14 +405,14 @@ p {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ===== Botones deshabilitados ===== */
 button.disabled, .btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-/* ==== Overlay del mensaje fijo fuera de horario ==== */
-/* ==== POSICIÓN CORREGIDA DEL AVISO DE CIERRE ==== */
+/* ===== Overlay fuera de horario ===== */
 #bloqueoMenu {
   position: absolute;
   top: calc(var(--header-height, 100px) + 10px);
@@ -427,7 +425,7 @@ button.disabled, .btn.disabled {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   padding: 20px;
   text-align: center;
-  z-index: 999;
+  z-index: 3000;
   transition: top 0.4s ease;
   animation: overlayFadeIn 0.7s ease-out forwards;
   color: #222;
@@ -440,38 +438,7 @@ button.disabled, .btn.disabled {
   top: calc(var(--menu-height, 380px) + 12px) !important;
 }
 
-/* === Ajuste específico para móviles === */
-@media (max-width: 768px) {
-  #bloqueoMenu {
-    position: absolute !important;
-    top: calc(var(--header-height, 80px) + 8px) !important;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 92%;
-    max-width: 340px;
-    padding: 16px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-  }
-
-  /* Si el menú hamburguesa se despliega, bajamos aún más el mensaje */
-  .nav-menu.abierto ~ #bloqueoMenu,
-  .menu-lateral.abierto ~ #bloqueoMenu {
-    top: calc(var(--menu-height, 420px) + 16px) !important;
-  }
-
-  #bloqueoMenu h2 {
-    font-size: 1.05rem;
-  }
-
-  #bloqueoMenu p {
-    font-size: 0.88rem;
-  }
-}
-
-
-/* Animaciones */
+/* ==== Animaciones ==== */
 @keyframes overlayFadeIn {
   from {
     opacity: 0;
@@ -488,7 +455,7 @@ button.disabled, .btn.disabled {
   50% { transform: scale(1.1); opacity: 0.85; }
 }
 
-/* ==== Efecto visual para el menú bloqueado ==== */
+/* ==== Efecto visual del menú bloqueado ==== */
 .menu-bloqueado {
   pointer-events: none;
   opacity: 0.6;
@@ -496,7 +463,7 @@ button.disabled, .btn.disabled {
   filter: blur(2px);
 }
 
-/* === Ajuste del mensaje de "Estamos cerrados" en móviles === */
+/* ===== Ajuste móvil del aviso de cierre ===== */
 @media (max-width: 768px) {
   :root {
     --header-height: 80px;
@@ -512,9 +479,15 @@ button.disabled, .btn.disabled {
     max-width: 340px;
     padding: 16px;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
     animation: fadeIn 0.6s ease;
+  }
+
+  /* Si el menú hamburguesa está abierto */
+  .nav-menu.abierto ~ #bloqueoMenu,
+  .menu-lateral.abierto ~ #bloqueoMenu {
+    top: calc(var(--menu-height, 420px) + 16px) !important;
   }
 
   #bloqueoMenu h2 {
