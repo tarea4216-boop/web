@@ -16,7 +16,6 @@ function estaDentroDelHorario() {
 
 // ✅ Eliminamos el toast de aviso y solo dejamos el mensaje superior
 function mostrarAvisoFueraHorario() {
-  // No hace nada visual, solo evita duplicaciones
   FUERA_DE_HORARIO = true;
 }
 
@@ -51,7 +50,7 @@ function deshabilitarFueraHorario() {
     categoria.classList.add('disabled');
   }
 
-  // Mostrar aviso fijo en la parte superior (debajo del header)
+  // Mostrar aviso fijo en la parte superior (debajo del header o menú)
   if (!document.getElementById("bloqueoMenu")) {
     const overlay = document.createElement("div");
     overlay.id = "bloqueoMenu";
@@ -63,24 +62,42 @@ function deshabilitarFueraHorario() {
       </div>
     `;
 
+    // 📍 Cambiado a posición absoluta para no tapar el header
     Object.assign(overlay.style, {
-      position: "fixed",
-      top: "90px",
+      position: "absolute",
+      top: "calc(var(--header-height, 100px) + 10px)",
       left: "50%",
       transform: "translateX(-50%)",
-      background: "rgba(255,255,255,0.9)",
+      background: "rgba(255,255,255,0.95)",
       backdropFilter: "blur(8px)",
       border: "1px solid rgba(0,0,0,0.1)",
       boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
       padding: "18px 26px",
       borderRadius: "14px",
-      zIndex: "3000",
+      zIndex: "999",
       textAlign: "center",
       color: "#222",
+      transition: "top 0.4s ease",
       animation: "overlayFadeIn 0.8s ease-out forwards",
+      width: "92%",
+      maxWidth: "380px"
     });
 
     document.body.appendChild(overlay);
+
+    // 👁️ Observa si el menú hamburguesa se abre para ajustar la posición
+    const navMenu = document.querySelector('.nav-menu, .menu-lateral, nav');
+    if (navMenu) {
+      const observer = new MutationObserver(() => {
+        const isOpen =
+          navMenu.classList.contains('open') ||
+          navMenu.style.display === 'block';
+        overlay.style.top = isOpen
+          ? "calc(var(--menu-height, 400px) + 20px)"
+          : "calc(var(--header-height, 100px) + 10px)";
+      });
+      observer.observe(navMenu, { attributes: true, attributeFilter: ['class', 'style'] });
+    }
   }
 
   // Aplicar efecto visual al grid del menú
