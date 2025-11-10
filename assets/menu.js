@@ -4,7 +4,7 @@ import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
 // === HORARIO DE ATENCIÓN ===
-const HORARIO = { apertura: 10, cierre: 18 };
+const HORARIO = { apertura: 9, cierre: 18 };
 let FUERA_DE_HORARIO = false;
 
 // === FUNCIONES DE HORARIO ===
@@ -18,13 +18,12 @@ function estaDentroDelHorario() {
 function mostrarAvisoFueraHorario() {
   FUERA_DE_HORARIO = true;
 }
-
 function deshabilitarFueraHorario() {
   FUERA_DE_HORARIO = true;
 
   // Deshabilitar botones del menú
   document.querySelectorAll('[data-add]').forEach(btn => {
-    btn.setAttribute('disabled', 'true');
+    btn.disabled = true;
     btn.classList.add('disabled');
   });
 
@@ -32,18 +31,21 @@ function deshabilitarFueraHorario() {
   ["checkoutBtn", "clearCart", "floatingCart"].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) {
-      btn.setAttribute('disabled', 'true');
+      btn.disabled = true;
       btn.classList.add('disabled');
     }
   });
 
-  // 🚫 Deshabilitar buscador y filtro de categoría
-  const search = document.getElementById("search");
-  const categoria = document.getElementById("categoria");
-  if (search) search.setAttribute('disabled', 'true');
-  if (categoria) categoria.setAttribute('disabled', 'true');
+  // Deshabilitar buscador y categoría
+  ["search", "categoria"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.disabled = true;
+      el.classList.add('disabled');
+    }
+  });
 
-  // Mostrar aviso fijo debajo del encabezado
+  // Mostrar aviso fijo debajo del header
   if (!document.getElementById("bloqueoMenu")) {
     const overlay = document.createElement("div");
     overlay.id = "bloqueoMenu";
@@ -57,19 +59,18 @@ function deshabilitarFueraHorario() {
 
     Object.assign(overlay.style, {
       position: "fixed",
-      top: "calc(var(--header-height, 100px) + 4px)",
+      top: "calc(var(--header-height, 100px) + 6px)",
       left: "50%",
       transform: "translateX(-50%)",
-      background: "rgba(255,255,255,0.95)",
+      background: "rgba(255,255,255,0.96)",
       backdropFilter: "blur(8px)",
       border: "1px solid rgba(0,0,0,0.1)",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
       padding: "18px 26px",
       borderRadius: "14px",
       zIndex: "3000",
       textAlign: "center",
       color: "#222",
-      transition: "top 0.4s ease",
       animation: "overlayFadeIn 0.8s ease-out forwards",
       width: "92%",
       maxWidth: "380px"
@@ -77,25 +78,35 @@ function deshabilitarFueraHorario() {
 
     document.body.appendChild(overlay);
 
-    // 👁️ Si se abre el menú hamburguesa, baja el mensaje
+    // 👁️ Ajuste dinámico según apertura del menú hamburguesa
     const navMenu = document.querySelector('.nav-menu, .menu-lateral, nav');
     if (navMenu) {
-      const observer = new MutationObserver(() => {
-        const abierto =
-          navMenu.classList.contains('open') ||
-          navMenu.style.display === 'block';
-        overlay.style.top = abierto
-          ? "calc(var(--menu-height, 400px) + 8px)"
-          : "calc(var(--header-height, 100px) + 4px)";
-      });
+      const ajustarPosicion = () => {
+        const visible = window.getComputedStyle(navMenu).display !== 'none';
+        overlay.style.top = visible
+          ? "calc(var(--menu-height, 380px) + 12px)"
+          : "calc(var(--header-height, 100px) + 6px)";
+      };
+
+      // Ajustar cada vez que cambia la visibilidad
+      const observer = new MutationObserver(ajustarPosicion);
       observer.observe(navMenu, { attributes: true, attributeFilter: ['class', 'style'] });
+
+      // También escuchar clicks fuera del menú para reacomodar
+      document.addEventListener('click', ajustarPosicion, true);
+
+      // Llamar inmediatamente para estado inicial
+      ajustarPosicion();
     }
   }
 
-  // Apagar interacciones del grid del menú
+  // Aplicar efecto visual al grid del menú
   const grid = document.getElementById("menuGrid");
-  if (grid) grid.classList.add("menu-bloqueado");
+  if (grid && !grid.classList.contains("menu-bloqueado")) {
+    grid.classList.add("menu-bloqueado");
+  }
 }
+
 
 
 // ✅ Rehabilita todo cuando el restaurante está abierto
