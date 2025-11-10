@@ -414,9 +414,10 @@ button.disabled, .btn.disabled {
 }
 
 /* ==== Overlay del mensaje fijo fuera de horario ==== */
+/* ==== POSICIÓN CORREGIDA DEL AVISO DE CIERRE ==== */
 #bloqueoMenu {
-  position: fixed;
-  top: calc(var(--header-height) + 10px);
+  position: absolute;
+  top: calc(var(--header-height, 100px) + 10px);
   left: 50%;
   transform: translateX(-50%);
   width: 92%;
@@ -433,31 +434,42 @@ button.disabled, .btn.disabled {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Contenido del aviso */
-#bloqueoMenu .bloqueo-contenido {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* Cuando el menú hamburguesa está abierto */
+.nav-menu.abierto ~ #bloqueoMenu,
+.menu-lateral.abierto ~ #bloqueoMenu {
+  top: calc(var(--menu-height, 380px) + 12px) !important;
 }
 
-#bloqueoMenu .icono {
-  font-size: 2.4rem;
-  animation: pulse 2.5s infinite ease-in-out;
-  margin-bottom: 8px;
+/* === Ajuste específico para móviles === */
+@media (max-width: 768px) {
+  #bloqueoMenu {
+    position: absolute !important;
+    top: calc(var(--header-height, 80px) + 8px) !important;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 340px;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Si el menú hamburguesa se despliega, bajamos aún más el mensaje */
+  .nav-menu.abierto ~ #bloqueoMenu,
+  .menu-lateral.abierto ~ #bloqueoMenu {
+    top: calc(var(--menu-height, 420px) + 16px) !important;
+  }
+
+  #bloqueoMenu h2 {
+    font-size: 1.05rem;
+  }
+
+  #bloqueoMenu p {
+    font-size: 0.88rem;
+  }
 }
 
-#bloqueoMenu h2 {
-  font-size: 1.2rem;
-  margin: 0;
-  font-weight: 600;
-}
-
-#bloqueoMenu p {
-  margin-top: 4px;
-  font-size: 0.9rem;
-  opacity: 0.8;
-  color: #333;
-}
 
 /* Animaciones */
 @keyframes overlayFadeIn {
