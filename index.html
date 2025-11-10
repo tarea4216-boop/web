@@ -1,59 +1,117 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>El Camarón de Oro</title>
-  <link rel="stylesheet" href="assets/styles.css">
-  <!-- Swiper CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
-  />
-</head>
-<body>
-  <header class="header"></header>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inicio | El Camarón de Oro</title>
 
-  <section class="banner">
-    <div class="wrap container">
-      <div style="flex:1">
-        <h1>Bienvenidos a El Camarón de Oro</h1>
-        <p>Gastronomía campestre con especialidad en camarones, a 15 años de tradición.</p>
-        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn primary" href="menu.html">Ver Menú</a>
-          <a class="btn ghost" href="promos.html">Promociones</a>
+  <!-- Estilos principales -->
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/index.css" />
+
+  <!-- Swiper CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+  <!-- Tipografía -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Sistema de notificaciones -->
+  <link rel="stylesheet" href="assets/toast/toast.css" />
+</head>
+
+<body class="preload">
+  <!-- ENCABEZADO GLASS -->
+  <header class="header glass-header">
+    <div class="container nav-container">
+      <div class="brand">
+        <img src="https://i.ibb.co/dKnPMDb/camaron-logo.png" alt="Logo El Camarón de Oro" />
+        <div>
+          <h3>El Camarón de Oro</h3>
+          <small>Gastronomía campestre</small>
         </div>
       </div>
-      <img src="https://images.unsplash.com/photo-1516685018646-549198525c1b?q=80&w=1200&auto=format&fit=crop" alt="plato" style="width:min(520px,45vw);border-radius:var(--radius);border:1px solid #eadcc7;box-shadow:var(--shadow)">
+      <nav class="nav-links">
+        <a href="index.html" class="active">Inicio</a>
+        <a href="menu.html">Menú</a>
+        <a href="promos.html">Promociones</a>
+        <a href="contacto.html">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO PRINCIPAL -->
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content container">
+      <div class="hero-text">
+        <h1>Sabores que conquistan, tradición que perdura</h1>
+        <p>
+          En <strong>El Camarón de Oro</strong> fusionamos lo mejor de la gastronomía campestre con 15 años de experiencia culinaria.
+        </p>
+        <div class="hero-buttons">
+          <a class="btn primary large" href="menu.html">Ver Menú</a>
+          <a class="btn ghost large" href="promos.html">Ver Promociones</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=1200&auto=format&fit=crop"
+             alt="Plato gourmet de camarones" />
+      </div>
     </div>
   </section>
 
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="container">
+    <!-- 🦐 Productos destacados -->
     <section class="section" id="destacados">
       <h2>Platos destacados</h2>
       <div class="grid cols-3" id="destGrid"></div>
     </section>
 
-    <section class="section">
+    <!-- 🎁 Promociones -->
+    <section class="section" id="promos">
       <h2>Promociones</h2>
       <div class="grid cols-3" id="promoGrid"></div>
     </section>
 
-    <section class="section">
+    <!-- ⭐ Testimonios -->
+    <section class="section" id="testimonios">
       <h2>Testimonios</h2>
       <div class="grid cols-2" id="testiGrid"></div>
     </section>
   </main>
 
-  <footer class="footer"></footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- PIE DE PÁGINA -->
+  <footer class="footer">
+    <p>© 2025 El Camarón de Oro. Todos los derechos reservados.</p>
+  </footer>
 
-  <!-- Tu script principal -->
+  <!-- CONTENEDOR DE NOTIFICACIONES -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- LIBRERÍAS -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="assets/toast/toast.js" defer></script>
+
+  <!-- SCRIPT PRINCIPAL (Módulo) -->
   <script type="module" src="assets/index.js"></script>
-  <!-- 🔔 Sistema global de notificaciones -->
-<link rel="stylesheet" href="assets/toast/toast.css">
-<script src="assets/toast/toast.js"></script>
-<div id="toastContainer" class="toast-container"></div>
 
+  <!-- ANIMACIONES Y CABECERA -->
+  <script>
+    window.addEventListener("load", () => {
+      document.body.classList.remove("preload");
+      document.body.classList.add("loaded");
+    });
+
+    window.addEventListener("scroll", () => {
+      const header = document.querySelector(".glass-header");
+      if (window.scrollY > 60) header.classList.add("shrink");
+      else header.classList.remove("shrink");
+    });
+  </script>
 </body>
 </html>
