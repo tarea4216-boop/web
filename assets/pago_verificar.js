@@ -7,7 +7,7 @@ window.initPagoVerificar = async function () {
   const db = firebase.database();
   const auth = firebase.auth();
 
-  // === Zona de carga del comprobante ===
+  // === UI de carga ===
   const uploadContainer = document.createElement('div');
   uploadContainer.innerHTML = `
     <h4>📸 Subir comprobante de pago</h4>
@@ -24,6 +24,7 @@ window.initPagoVerificar = async function () {
   const statusDiv = document.getElementById('verify-status');
 
   let selectedFile = null;
+  let intentosFallidos = 0;
   inputFile.addEventListener('change', e => selectedFile = e.target.files[0]);
 
   const pedidoId = qrContainer.dataset.pedidoId || `pedido-${Date.now()}`;
@@ -35,6 +36,29 @@ window.initPagoVerificar = async function () {
   const clienteCelular = qrContainer.dataset.celular || "Sin celular";
   const clienteReferencia = qrContainer.dataset.referencia || "";
   const clienteUid = qrContainer.dataset.uid || "anónimo";
+
+  // === Función para guardar en Firebase cuando falla ===
+  async function guardarPedidoPendiente(token) {
+    const ref = db.ref("pedidosPendientesValidacion").child(`validacion-${token}`);
+    await ref.set({
+      token,
+      idTemporal: clienteUid,
+      total: totalPedido,
+      estado: "esperando_admin",
+      tipo_pedido: "online",
+      cliente: {
+        uid: clienteUid,
+        nombre: clienteNombre,
+        celular: clienteCelular,
+        referencia: clienteReferencia
+      },
+      creadoEn: Date.now(),
+      ubicacion: { lat, lng },
+      items: carrito,
+      metodo_pago: "Yape/BCP"
+    });
+    console.log("📦 Pedido guardado en pedidosPendientesValidacion:", token);
+  }
 
   verifyBtn.addEventListener('click', async () => {
     if (!selectedFile) {
@@ -55,10 +79,10 @@ window.initPagoVerificar = async function () {
       if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
       if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total.");
 
-      // === 1️⃣ Guardar pedido en Firebase (idéntico al original) ===
+      // === ✅ Pedido correcto ===
       const refNuevo = db.ref("pedidosOnline").push();
       await refNuevo.set({
-        idTemporal: clienteUid, // mismo campo que la versión original
+        idTemporal: clienteUid,
         total: totalPedido,
         estado: "confirmado",
         tipo_pedido: "online",
@@ -82,7 +106,7 @@ window.initPagoVerificar = async function () {
 
       console.log("✅ Pedido guardado correctamente en Firebase");
 
-      // === 2️⃣ Registrar venta en SUPABASE (según tu tabla real) ===
+      // === Registrar venta en SUPABASE ===
       const { error: insertError } = await supabase.from('ventas').insert([{
         id_pedido: pedidoId,
         cliente: clienteNombre,
@@ -90,11 +114,11 @@ window.initPagoVerificar = async function () {
         productos: carrito,
         fecha: new Date().toISOString()
       }]);
-
       if (insertError) throw insertError;
+
       console.log("✅ Venta registrada correctamente en Supabase");
 
-      // === 3️⃣ Generar PDF del comprobante ===
+      // === Generar PDF ===
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       doc.setFontSize(14);
@@ -108,18 +132,15 @@ window.initPagoVerificar = async function () {
       doc.text(`Monto total: S/ ${totalPedido.toFixed(2)}`, 15, 81);
       doc.text(`Estado: Confirmado`, 15, 91);
       doc.text("Items:", 15, 105);
-
       let y = 115;
       carrito.forEach(it => {
         const line = `- ${it.nombre} x${it.qty} — S/ ${(it.precio * it.qty).toFixed(2)}`;
         doc.text(line, 20, y);
         y += 8;
       });
-
       doc.text("Gracias por tu compra ❤️", 15, y + 10);
       doc.save(`Pedido_${pedidoId}.pdf`);
 
-      // === 4️⃣ Mensaje final ===
       if (window.bloquearMapaPago) window.bloquearMapaPago();
 
       showToast("🎉 Pago confirmado. Comprobante descargado.", "success");
@@ -134,10 +155,46 @@ window.initPagoVerificar = async function () {
       `;
 
     } catch (err) {
+      intentosFallidos++;
       console.error("❌ Error en verificación:", err);
       statusDiv.textContent = "❌ " + err.message;
       showToast("❌ " + err.message, "error");
       verifyBtn.disabled = false;
+
+      // === Después de 2 intentos fallidos ===
+      if (intentosFallidos >= 2) {
+        const token = Math.random().toString(36).substring(2, 10).toUpperCase();
+        await guardarPedidoPendiente(token);
+
+      const adminLink = `https://admin-validar.onrender.com/admin_validar.html?token=${token}`;
+
+        // Construir mensaje de WhatsApp
+        const mensaje = `
+Hola, quiero hacer un pedido pero no puedo validar mi comprobante de pago.
+
+🧾 Detalles del pedido:
+${carrito.map(it => `- ${it.nombre} x${it.qty} — S/ ${(it.precio * it.qty).toFixed(2)}`).join('\n')}
+💰 Total: S/ ${totalPedido.toFixed(2)}
+👤 Cliente: ${clienteNombre}
+📱 ${clienteCelular}
+🏠 ${clienteReferencia || "Sin referencia"}
+
+Validar pedido: ${adminLink}
+        `.trim();
+
+        const whatsappURL = `https://wa.me/51986556773?text=${encodeURIComponent(mensaje)}`;
+
+        statusDiv.innerHTML = `
+          ⚠️ No se pudo validar el pago automáticamente.<br>
+          <button id="btn-whatsapp" class="btn primary" style="margin-top:10px;">📱 Enviar por WhatsApp</button>
+        `;
+
+        document.getElementById("btn-whatsapp").addEventListener("click", () => {
+          window.open(whatsappURL, "_blank");
+        });
+
+        verifyBtn.disabled = true;
+      }
     }
   });
 };
