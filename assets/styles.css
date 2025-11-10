@@ -327,6 +327,12 @@ p {
   height: 350px;
   border: 0;
 }
+/* ===== VARIABLES GLOBALES ===== */
+:root {
+  --header-height: 100px;
+  --menu-height: 400px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   #contactInfo .row {
@@ -357,7 +363,6 @@ p {
   transform-origin: center center;
 }
 
-/* sombra proyectada bajo la imagen durante el vuelo */
 .flying-shadow {
   position: fixed;
   z-index: 2100;
@@ -388,7 +393,6 @@ p {
 }
 .floating-count-pop { animation: countPop 360ms cubic-bezier(.2,.8,.2,1); }
 
-/* ligera suavidad extra para blur/brightness durante el vuelo */
 .flying-img.blur {
   filter: blur(.6px) brightness(.98);
 }
@@ -407,27 +411,31 @@ button.disabled, .btn.disabled {
   pointer-events: none;
 }
 
-
 /* ==== Overlay del mensaje fijo fuera de horario ==== */
 #bloqueoMenu {
-  animation: overlayFadeIn 0.7s ease-out forwards;
-  pointer-events: none; /* evita que bloquee clics del sitio */
-  position: fixed;
+  position: absolute;
+  top: calc(var(--header-height) + 10px);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 2000;
-  top: calc(75px + env(safe-area-inset-top)); /* Ajuste para debajo del encabezado */
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-  padding: 20px;
   width: 92%;
   max-width: 380px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 20px;
   text-align: center;
+  z-index: 999;
+  transition: top 0.4s ease;
+  animation: overlayFadeIn 0.7s ease-out forwards;
+  color: #222;
+  font-family: 'Poppins', sans-serif;
 }
 
+/* Contenido del aviso */
 #bloqueoMenu .bloqueo-contenido {
-  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #bloqueoMenu .icono {
@@ -449,6 +457,7 @@ button.disabled, .btn.disabled {
   color: #333;
 }
 
+/* Animaciones */
 @keyframes overlayFadeIn {
   from {
     opacity: 0;
@@ -462,7 +471,7 @@ button.disabled, .btn.disabled {
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 0.85; }
 }
 
 /* ==== Efecto visual para el menú bloqueado ==== */
@@ -475,25 +484,23 @@ button.disabled, .btn.disabled {
 
 /* === Ajuste del mensaje de "Estamos cerrados" en móviles === */
 @media (max-width: 768px) {
+  :root {
+    --header-height: 80px;
+    --menu-height: 380px;
+  }
+
   #bloqueoMenu {
-    position: fixed !important;
-    top: calc(90px + env(safe-area-inset-top)) !important; /* asegura que no tape el header */
+    position: absolute !important;
+    top: calc(var(--header-height) + 8px) !important;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
-    max-width: 360px;
-    z-index: 2000;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    max-width: 340px;
     padding: 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
     animation: fadeIn 0.6s ease;
-  }
-
-  #bloqueoMenu .bloqueo-contenido {
-    background: none;
-    padding: 0;
-    box-shadow: none;
   }
 
   #bloqueoMenu h2 {
