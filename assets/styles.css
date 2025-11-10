@@ -462,3 +462,32 @@ button.disabled, .btn.disabled {
   transition: opacity 0.6s ease;
   filter: blur(2px);
 }
+
+/* === Ajuste del mensaje de "Estamos cerrados" en móviles === */
+@media (max-width: 768px) {
+  #bloqueoMenu {
+    position: absolute !important;
+    top: 80px !important; /* Ajusta según la altura real del header */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 360px;
+    z-index: 2000;
+  }
+
+  #bloqueoMenu .bloqueo-contenido {
+    background: #fff;
+    padding: 16px;
+    border-radius: 14px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    text-align: center;
+  }
+
+  #bloqueoMenu h2 {
+    font-size: 1.1rem;
+  }
+
+  #bloqueoMenu p {
+    font-size: 0.9rem;
+  }
+}
