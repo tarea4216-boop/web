@@ -327,11 +327,13 @@ p {
   height: 350px;
   border: 0;
 }
+
 /* ===== VARIABLES GLOBALES ===== */
 :root {
-  --header-height: 100px;
+  --header-height: 80px;
   --menu-height: 400px;
 }
+
 
 /* Responsive */
 @media (max-width: 600px) {
