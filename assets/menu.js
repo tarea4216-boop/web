@@ -3,7 +3,7 @@ import { fetchAll } from './supabaseClient.js';
 import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
-// === HORARIO DE ATENCIÓN ===
+// === HORARIO DE ATENCIÓN :D ===
 const HORARIO = { apertura: 6, cierre: 18 };
 let FUERA_DE_HORARIO = false;
 
