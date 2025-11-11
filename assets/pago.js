@@ -1,117 +1,183 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inicio | El Camarón de Oro</title>
+(async function () {
+  const STORAGE_KEY = 'camaron_cart_v1';
+  const cart = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const summary = document.getElementById('cart-summary');
+  const qrContainer = document.getElementById('qr');
+  const coverageMsg = document.getElementById('coverage-msg');
 
-  <!-- Estilos principales -->
-  <link rel="stylesheet" href="assets/styles.css" />
-  <link rel="stylesheet" href="assets/index.css" />
+  if (!cart.length) {
+    summary.innerHTML = '<p>Tu carrito está vacío.</p>';
+    showToast("⚠️ Tu carrito está vacío", "error");
+    return;
+  }
 
-  <!-- Swiper CSS -->
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  // === Mostrar resumen ===
+  let total = 0;
+  const ul = document.createElement('ul');
+  ul.style.listStyle = 'none';
+  ul.style.paddingLeft = '0';
 
-  <!-- Tipografía -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  cart.forEach((it, index) => {
+    const li = document.createElement('li');
+    li.style.marginBottom = '1rem';
+    li.innerHTML = `
+      <p><b>${it.nombre}</b> x${it.qty} — S/ ${(it.precio * it.qty).toFixed(2)}</p>
+      <textarea id="comentario-${index}" placeholder="Comentario adicional (opcional)" rows="1"
+        style="width:100%;resize:none;border-radius:6px;padding:5px;"></textarea>
+    `;
+    ul.appendChild(li);
+    total += it.precio * it.qty;
+  });
 
-  <!-- Sistema de notificaciones -->
-  <link rel="stylesheet" href="assets/toast/toast.css" />
-</head>
+  summary.appendChild(ul);
+  summary.innerHTML += `<p><b>Total:</b> S/ ${total.toFixed(2)}</p>`;
 
-<body class="preload">
-  <!-- ENCABEZADO GLASS -->
-  <header class="header glass-header">
-    <div class="container nav-container">
-      <div class="brand">
-        <img src="https://i.ibb.co/dKnPMDb/camaron-logo.png" alt="Logo El Camarón de Oro" />
-        <div>
-          <h3>El Camarón de Oro</h3>
-          <small>Gastronomía campestre</small>
-        </div>
+  qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
+
+  // === Mapa ===
+  const restaurantLatLng = L.latLng(-12.525472, -76.557917);
+  const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  L.marker(restaurantLatLng).addTo(map).bindPopup('📍 Restaurante El Camarón de Oro').openPopup();
+
+  // === Función para crear óvalos personalizados ===
+  function createOval(center, rxMeters, ryMeters, points = 60) {
+    const latlngs = [];
+    const angleStep = (2 * Math.PI) / points;
+    const earthRadius = 6378137;
+    for (let i = 0; i < points; i++) {
+      const angle = i * angleStep;
+      const dx = rxMeters * Math.cos(angle);
+      const dy = ryMeters * Math.sin(angle);
+      const latOffset = (dy / earthRadius) * (180 / Math.PI);
+      const lngOffset = (dx / (earthRadius * Math.cos(center.lat * Math.PI / 180))) * (180 / Math.PI);
+      latlngs.push([center.lat + latOffset, center.lng + lngOffset]);
+    }
+    return latlngs;
+  }
+
+  // === Áreas de cobertura personalizadas ===
+  const area1 = L.polygon(createOval({ lat: -12.527, lng: -76.563 }, 1800, 800), {
+    color: '#2a9d8f',
+    fillColor: '#2a9d8f',
+    fillOpacity: 0.15
+  }).addTo(map);
+
+  const area2 = L.polygon(createOval({ lat: -12.523, lng: -76.550 }, 1600, 600), {
+    color: '#2a9d8f',
+    fillColor: '#2a9d8f',
+    fillOpacity: 0.15
+  }).addTo(map);
+
+  // === Validar si un punto está dentro de la cobertura ===
+  function checkCoverage(latlng) {
+    return area1.getBounds().contains(latlng) || area2.getBounds().contains(latlng);
+  }
+
+  let marker = null;
+  let currentUser = null;
+  let selectedLatLng = null;
+  let pagoConfirmado = false;
+
+  // === Sesión anónima ===
+  try {
+    const cred = await firebase.auth().signInAnonymously();
+    currentUser = cred.user;
+    const roleRef = firebase.database().ref('roles/' + currentUser.uid);
+    const snapshot = await roleRef.get();
+    if (!snapshot.exists()) await roleRef.set('cliente');
+  } catch (err) {
+    console.error("Error Firebase:", err);
+    showToast("❌ Error al conectarse a Firebase.", "error");
+    return;
+  }
+
+  // === Click en el mapa ===
+  map.on('click', function (e) {
+    if (pagoConfirmado) {
+      showToast("✅ El pago ya fue confirmado.", "info");
+      return;
+    }
+
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(map);
+    selectedLatLng = e.latlng;
+
+    if (!checkCoverage(selectedLatLng)) {
+      coverageMsg.textContent = '⚠️ Fuera de cobertura.';
+      qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
+      showToast("⚠️ Estás fuera del área de entrega.", "error");
+      return;
+    }
+
+    coverageMsg.textContent = '✅ Dentro de cobertura.';
+    showToast("✅ Ubicación válida", "success");
+
+    qrContainer.innerHTML = `
+      <h4>Datos para la entrega</h4>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:400px;">
+        <input type="text" id="cliente-nombre" placeholder="👤 Nombre completo" style="padding:10px;border-radius:6px;border:1px solid #ccc;">
+        <input type="tel" id="cliente-celular" placeholder="📱 Número de celular" maxlength="9" style="padding:10px;border-radius:6px;border:1px solid #ccc;">
+        <textarea id="cliente-referencia" placeholder="🏠 Referencia del lugar" rows="2" style="padding:10px;border-radius:6px;border:1px solid #ccc;"></textarea>
+        <button id="continuar-pago" class="btn primary">Continuar al pago</button>
       </div>
-      <nav class="nav-links">
-        <a href="index.html" class="active">Inicio</a>
-        <a href="menu.html">Menú</a>
-        <a href="promos.html">Promociones</a>
-        <a href="contacto.html">Contacto</a>
-      </nav>
-    </div>
-  </header>
+    `;
 
-  <!-- HERO PRINCIPAL -->
-  <section class="hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content container">
-      <div class="hero-text">
-        <h1>Sabores que conquistan, tradición que perdura</h1>
-        <p>
-          En <strong>El Camarón de Oro</strong> fusionamos lo mejor de la gastronomía campestre con 15 años de experiencia culinaria.
-        </p>
-        <div class="hero-buttons">
-          <a class="btn primary large" href="menu.html">Ver Menú</a>
-          <a class="btn ghost large" href="promos.html">Ver Promociones</a>
-        </div>
-      </div>
-      <div class="hero-image">
-        <img src="https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=1200&auto=format&fit=crop"
-             alt="Plato gourmet de camarones" />
-      </div>
-    </div>
-  </section>
+    qrContainer.dataset.lat = selectedLatLng.lat;
+    qrContainer.dataset.lng = selectedLatLng.lng;
+    qrContainer.dataset.total = total;
+    qrContainer.dataset.uid = currentUser.uid;
+    qrContainer.dataset.pedidoId = `pedido-${Date.now()}`;
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="container">
-    <!-- 🦐 Productos destacados -->
-    <section class="section" id="destacados">
-      <h2>Platos destacados</h2>
-      <div class="grid cols-3" id="destGrid"></div>
-    </section>
+    document.getElementById('continuar-pago').addEventListener('click', () => {
+      const nombre = document.getElementById('cliente-nombre').value.trim();
+      const celular = document.getElementById('cliente-celular').value.trim();
+      const referencia = document.getElementById('cliente-referencia').value.trim();
 
-    <!-- 🎁 Promociones -->
-    <section class="section" id="promos">
-      <h2>Promociones</h2>
-      <div class="grid cols-3" id="promoGrid"></div>
-    </section>
+      if (!nombre || !celular) {
+        showToast("⚠️ Ingresa tu nombre y número de celular.", "error");
+        return;
+      }
 
-    <!-- ⭐ Testimonios -->
-    <section class="section" id="testimonios">
-      <h2>Testimonios</h2>
-      <div class="grid cols-2" id="testiGrid"></div>
-    </section>
-  </main>
+      const cartWithComments = cart.map((it, index) => {
+        const textarea = document.getElementById(`comentario-${index}`);
+        return { ...it, comentario: textarea?.value?.trim() || "" };
+      });
 
-  <!-- PIE DE PÁGINA -->
-  <footer class="footer">
-    <p>© 2025 El Camarón de Oro. Todos los derechos reservados.</p>
-  </footer>
+      Object.assign(qrContainer.dataset, {
+        nombre, celular, referencia,
+        cart: JSON.stringify(cartWithComments)
+      });
 
-  <!-- CONTENEDOR DE NOTIFICACIONES -->
-  <div id="toastContainer" class="toast-container"></div>
+      qrContainer.innerHTML = `
+        <h4>Resumen de tu pedido</h4>
+        <p><b>Cliente:</b> ${nombre}</p>
+        <p><b>Celular:</b> ${celular}</p>
+        <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
+        <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
+        <p style="font-size:0.9rem;">Sube la captura del pago para verificar.</p>
+      `;
 
-  <!-- LIBRERÍAS -->
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-  <script src="assets/toast/toast.js" defer></script>
+      const script = document.createElement('script');
+      script.id = "verificadorScript";
+      script.type = "module";
+      script.src = 'assets/pago_verificar.js';
+      document.body.appendChild(script);
 
-  <!-- SCRIPT PRINCIPAL (Módulo) -->
-  <script type="module" src="assets/index.js"></script>
-
-  <!-- ANIMACIONES Y CABECERA -->
-  <script>
-    window.addEventListener("load", () => {
-      document.body.classList.remove("preload");
-      document.body.classList.add("loaded");
+      localStorage.removeItem(STORAGE_KEY);
     });
+  });
 
-    window.addEventListener("scroll", () => {
-      const header = document.querySelector(".glass-header");
-      if (window.scrollY > 60) header.classList.add("shrink");
-      else header.classList.remove("shrink");
-    });
-  </script>
-</body>
-</html>
+  if (window.opener && window.opener.cart) {
+    window.opener.cart.clear?.();
+  }
+
+  window.bloquearMapaPago = function () {
+    pagoConfirmado = true;
+    map.dragging.disable();
+  };
+})();
