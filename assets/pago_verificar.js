@@ -166,7 +166,8 @@ window.initPagoVerificar = async function () {
         const token = Math.random().toString(36).substring(2, 10).toUpperCase();
         await guardarPedidoPendiente(token);
 
-      const adminLink = `https://admin-validar.onrender.com/admin_validar.html?token=${token}`;
+  const adminLink = `https://admin-validar.onrender.com/?token=${token}`;
+
 
         // Construir mensaje de WhatsApp
         const mensaje = `
@@ -201,3 +202,4 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
