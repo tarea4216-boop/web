@@ -203,3 +203,4 @@ Validar pedido: ${adminLink}
 // Inicializar automáticamente
 window.initPagoVerificar();
 
+
