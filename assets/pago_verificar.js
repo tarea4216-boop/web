@@ -74,7 +74,7 @@ window.initPagoVerificar = async function () {
       const result = await Tesseract.recognize(selectedFile, 'spa');
       const text = result.data.text.toLowerCase();
 
-      // Expresión regular mejorada para detectar montos como "s/39.00", "s/.39.00", "s / 39,00", etc.
+      // Expresión regular mejorada para detectar montos
       const montoMatch = text.match(/s[\s\/:.-]*([\d]+[.,]\d{2})/i);
       const montoPagado = montoMatch ? parseFloat(montoMatch[1].replace(',', '.')) : null;
 
@@ -191,8 +191,20 @@ Validar pedido: ${adminLink}
           <button id="btn-whatsapp" class="btn primary" style="margin-top:10px;">📱 Enviar por WhatsApp</button>
         `;
 
-        document.getElementById("btn-whatsapp").addEventListener("click", () => {
+        const btnWhatsApp = document.getElementById("btn-whatsapp");
+        btnWhatsApp.addEventListener("click", () => {
           window.open(whatsappURL, "_blank");
+          if (window.bloquearMapaPago) window.bloquearMapaPago();
+          showToast("📱 Pedido enviado por WhatsApp para validación manual.", "info");
+          qrContainer.innerHTML = `
+            <h3>📱 Pedido enviado a validación manual</h3>
+            <p>Tu comprobante fue enviado por WhatsApp al área administrativa.</p>
+            <p>Te confirmarán el pedido en breve.</p>
+            <p><b>Cliente:</b> ${clienteNombre}<br>
+               <b>Celular:</b> ${clienteCelular}<br>
+               <b>Referencia:</b> ${clienteReferencia || "—"}<br>
+               <b>Total:</b> S/ ${totalPedido.toFixed(2)}</p>
+          `;
         });
 
         verifyBtn.disabled = true;
