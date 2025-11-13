@@ -12,7 +12,7 @@ let currentItem = null;
 function estaDentroDelHorario() {
   const ahora = new Date();
   const hora = ahora.getHours() + ahora.getMinutes() / 60;
-  return hora >= 9 && hora < 18;
+  return hora >= 8 && hora < 18;
 }
 
 // === ABRIR MODAL ===
