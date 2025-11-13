@@ -4,7 +4,7 @@ import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
 // === HORARIO DE ATENCIÓN :D ===
-const HORARIO = { apertura: 8, cierre: 18 };
+const HORARIO = { apertura: 6, cierre: 18 };
 let FUERA_DE_HORARIO = false;
 
 // === FUNCIONES DE HORARIO ===
