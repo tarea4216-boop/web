@@ -73,7 +73,9 @@ window.initPagoVerificar = async function () {
       // === OCR con Tesseract ===
       const result = await Tesseract.recognize(selectedFile, 'spa');
       const text = result.data.text.toLowerCase();
-      const montoMatch = text.match(/s\/\\s*([\\d,.]+)/);
+
+      // Expresión regular mejorada para detectar montos como "s/39.00", "s/.39.00", "s / 39,00", etc.
+      const montoMatch = text.match(/s[\s\/:.-]*([\d]+[.,]\d{2})/i);
       const montoPagado = montoMatch ? parseFloat(montoMatch[1].replace(',', '.')) : null;
 
       if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
@@ -166,8 +168,7 @@ window.initPagoVerificar = async function () {
         const token = Math.random().toString(36).substring(2, 10).toUpperCase();
         await guardarPedidoPendiente(token);
 
-  const adminLink = `https://admin-validar.onrender.com/?token=${token}`;
-
+        const adminLink = `https://admin-validar.onrender.com/admin_validar.html?token=${token}`;
 
         // Construir mensaje de WhatsApp
         const mensaje = `
@@ -202,6 +203,3 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
-
-
-
