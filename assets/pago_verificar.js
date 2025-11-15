@@ -71,45 +71,137 @@ window.initPagoVerificar = async function () {
 
     try {
       // === OCR con Tesseract ===
- // === OCR con Tesseract ===
+// === OCR con Tesseract ===
 const result = await Tesseract.recognize(selectedFile, 'spa');
 let text = result.data.text.toLowerCase();
 
-// Limpieza básica (corrige errores comunes de OCR)
+// Limpieza básica del OCR
 text = text
   .replace(/§/g, "s")
   .replace(/sl/g, "s")
   .replace(/5\//g, "s/")
   .replace(/\$/g, "s")
-  .replace(/s\s+\/?/g, "s/") 
-  .replace(/\s+/g, " "); // compactar espacios
+  .replace(/s\s+\/?/g, "s/")
+  .replace(/\s+/g, " "); 
 
 console.log("📝 Texto OCR procesado:", text);
 
-// === DETECTOR DE MONTO ROBUSTO ===
+// ===============================
+// === DETECCIÓN DE MONTO ========
+// ===============================
 
-// 1) Regex principal tolerante
-let match = text.match(/(?:s|5|\$|sl|§)?\s*[\/:.-]?\s*([\d]{1,3}[.,]\d{1,2})/i);
+// Regex tolerante pero segura
+const regexMontoSeguro = /(?:s|5|\$)?\s*[\/:.-]?\s*([0-9]{1,3}[.,][0-9]{1,2})/i;
+let execMonto = regexMontoSeguro.exec(text);
 
 let montoPagado = null;
 
-// 2) Plan B si falla: buscar cualquier número decimal válido
-if (!match) {
-  match = text.match(/([\d]{1,3}[.,]\d{1,2})/);
+// Si no se encontró, plan B tolerante
+if (!execMonto) {
+  execMonto = /([0-9]{1,3}[.,][0-9]{1,2})/.exec(text);
 }
 
-// 3) Extraer el monto
-if (match) {
-  montoPagado = parseFloat(match[1].replace(",", "."));
+// Si hay coincidencia, convertir
+if (execMonto) {
+  montoPagado = parseFloat(execMonto[1].replace(",", "."));
 }
 
-// 4) Filtro de números absurdos (evita confundir códigos de operación)
-if (montoPagado && (montoPagado <= 0 || montoPagado > 1000)) {
+// ------------------------------
+// Filtro general anti falsos
+// ------------------------------
+if (!montoPagado || isNaN(montoPagado) || montoPagado <= 0 || montoPagado > 1000) {
   montoPagado = null;
 }
 
-if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
-if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total.");
+// ------------------------------
+// Evitar capturar HORA como monto
+// Ej: 12:34 termina detectándose como "12.34"
+// ------------------------------
+if (execMonto) {
+  const matchIndex = execMonto.index;
+
+  // Buscar si alrededor hay ":" típico de hora
+  const start = Math.max(0, matchIndex - 10);
+  const end = Math.min(text.length, matchIndex + 10);
+  const alrededor = text.substring(start, end);
+
+  if (/\d{1,2}:\d{2}/.test(alrededor)) {
+    console.warn("⛔ Monto probable detectado como hora → descartado");
+    montoPagado = null;
+  }
+}
+
+// ------------------------------
+// Evitar códigos de operación cerca
+// ------------------------------
+if (execMonto) {
+  const matchIndex = execMonto.index;
+  const start = Math.max(0, matchIndex - 25);
+  const end = Math.min(text.length, matchIndex + 25);
+  const alrededor = text.substring(start, end);
+
+  if (/operaci[oó]n|c[oó]digo|transacci[oó]n|ope|trx/.test(alrededor)) {
+    console.warn("⛔ Monto cercano a texto de operación → descartado");
+    montoPagado = null;
+  }
+}
+
+// Validación final del monto
+if (!montoPagado) {
+  throw new Error("No se detectó un monto válido en el comprobante.");
+}
+
+if (montoPagado < totalPedido) {
+  throw new Error(`Monto insuficiente. Detectado: S/${montoPagado.toFixed(2)}`);
+}
+
+console.log("💰 Monto detectado:", montoPagado);
+
+
+// ===============================
+// === DETECCIÓN DE HORA =========
+// ===============================
+
+// Hora en formato 24h o 12h con am/pm
+let horaMatchAMPM = text.match(/([01]?\d|2[0-3]):([0-5]\d)\s*(am|pm)/);
+let horaMatch = text.match(/([01]?\d|2[0-3]):([0-5]\d)/);
+
+let horaPago = null;
+
+if (horaMatchAMPM) {
+  horaPago = horaMatchAMPM[0].trim();
+} else if (horaMatch) {
+  horaPago = horaMatch[0].trim();
+}
+
+if (!horaPago) {
+  throw new Error("No se encontró la hora del pago en el comprobante.");
+}
+
+// Conversión a minutos para comparar
+function convertirHora(hora) {
+  const ampm = hora.includes("am") || hora.includes("pm");
+  let [h, m] = hora.replace(/am|pm/, "").trim().split(":").map(Number);
+
+  if (ampm) {
+    const esPM = hora.includes("pm");
+    if (esPM && h < 12) h += 12;
+    if (!esPM && h === 12) h = 0;
+  }
+  return h * 60 + m;
+}
+
+const minutosPago = convertirHora(horaPago);
+const ahora = new Date();
+const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
+const diferencia = Math.abs(minutosAhora - minutosPago);
+
+// Se permite ±45 minutos
+if (diferencia > 45) {
+  throw new Error(`La hora del pago (${horaPago}) no coincide con el pedido.`);
+}
+
+console.log("⏱ Hora detectada:", horaPago);
 
 
       // === ✅ Pedido correcto ===
@@ -246,5 +338,6 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
 
