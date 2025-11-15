@@ -71,15 +71,46 @@ window.initPagoVerificar = async function () {
 
     try {
       // === OCR con Tesseract ===
-      const result = await Tesseract.recognize(selectedFile, 'spa');
-      const text = result.data.text.toLowerCase();
+ // === OCR con Tesseract ===
+const result = await Tesseract.recognize(selectedFile, 'spa');
+let text = result.data.text.toLowerCase();
 
-      // Expresión regular mejorada para detectar montos
-      const montoMatch = text.match(/s[\s\/:.-]*([\d]+[.,]\d{2})/i);
-      const montoPagado = montoMatch ? parseFloat(montoMatch[1].replace(',', '.')) : null;
+// Limpieza básica (corrige errores comunes de OCR)
+text = text
+  .replace(/§/g, "s")
+  .replace(/sl/g, "s")
+  .replace(/5\//g, "s/")
+  .replace(/\$/g, "s")
+  .replace(/s\s+\/?/g, "s/") 
+  .replace(/\s+/g, " "); // compactar espacios
 
-      if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
-      if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total.");
+console.log("📝 Texto OCR procesado:", text);
+
+// === DETECTOR DE MONTO ROBUSTO ===
+
+// 1) Regex principal tolerante
+let match = text.match(/(?:s|5|\$|sl|§)?\s*[\/:.-]?\s*([\d]{1,3}[.,]\d{1,2})/i);
+
+let montoPagado = null;
+
+// 2) Plan B si falla: buscar cualquier número decimal válido
+if (!match) {
+  match = text.match(/([\d]{1,3}[.,]\d{1,2})/);
+}
+
+// 3) Extraer el monto
+if (match) {
+  montoPagado = parseFloat(match[1].replace(",", "."));
+}
+
+// 4) Filtro de números absurdos (evita confundir códigos de operación)
+if (montoPagado && (montoPagado <= 0 || montoPagado > 1000)) {
+  montoPagado = null;
+}
+
+if (!montoPagado) throw new Error("No se detectó monto en la imagen.");
+if (montoPagado < totalPedido) throw new Error("Monto pagado menor al total.");
+
 
       // === ✅ Pedido correcto ===
       const refNuevo = db.ref("pedidosOnline").push();
@@ -215,4 +246,5 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
