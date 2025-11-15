@@ -81,8 +81,9 @@ text = text
   .replace(/sl/g, "s")
   .replace(/5\//g, "s/")
   .replace(/\$/g, "s")
-  .replace(/s\s+\/?/g, "s/")
-  .replace(/\s+/g, " "); 
+  .replace(/s\s+\/?/g, "s/") 
+  .replace(/\s+/g, " ")
+  .trim();
 
 console.log("📝 Texto OCR procesado:", text);
 
@@ -90,63 +91,50 @@ console.log("📝 Texto OCR procesado:", text);
 // === DETECCIÓN DE MONTO ========
 // ===============================
 
-// Regex tolerante pero segura
-const regexMontoSeguro = /(?:s|5|\$)?\s*[\/:.-]?\s*([0-9]{1,3}[.,][0-9]{1,2})/i;
+// Regex EXACTO para comprobantes reales "s/3.50"
+const regexMontoSeguro = /s[\/]?\s*([0-9]+\.[0-9]{1,2})/i;
 let execMonto = regexMontoSeguro.exec(text);
 
 let montoPagado = null;
 
-// Si no se encontró, plan B tolerante
+// Plan B — solo números tipo "3.50"
 if (!execMonto) {
-  execMonto = /([0-9]{1,3}[.,][0-9]{1,2})/.exec(text);
+  execMonto = /\b([0-9]+\.[0-9]{1,2})\b/.exec(text);
 }
 
-// Si hay coincidencia, convertir
+// Convertir
 if (execMonto) {
-  montoPagado = parseFloat(execMonto[1].replace(",", "."));
+  montoPagado = parseFloat(execMonto[1]);
 }
 
-// ------------------------------
-// Filtro general anti falsos
-// ------------------------------
-if (!montoPagado || isNaN(montoPagado) || montoPagado <= 0 || montoPagado > 1000) {
+// Filtro de rango válido
+if (!montoPagado || isNaN(montoPagado) || montoPagado <= 0 || montoPagado > 1500) {
   montoPagado = null;
 }
 
-// ------------------------------
-// Evitar capturar HORA como monto
-// Ej: 12:34 termina detectándose como "12.34"
-// ------------------------------
+// ===============================
+// === EVITAR FALSOS POSITIVOS ===
+// ===============================
+
 if (execMonto) {
-  const matchIndex = execMonto.index;
 
-  // Buscar si alrededor hay ":" típico de hora
-  const start = Math.max(0, matchIndex - 10);
-  const end = Math.min(text.length, matchIndex + 10);
-  const alrededor = text.substring(start, end);
+  // 1. Evitar confundir hora y monto
+  const alrededor = text.substring(execMonto.index - 6, execMonto.index + 6);
 
-  if (/\d{1,2}:\d{2}/.test(alrededor)) {
-    console.warn("⛔ Monto probable detectado como hora → descartado");
+  // Solo se descarta si el MATCH completo es una hora
+  if (/^\d{1,2}\.\d{2}$/.test(execMonto[1]) && /\d{1,2}:\d{2}/.test(alrededor)) {
+    console.warn("⛔ Monto confundido con hora → descartado");
+    montoPagado = null;
+  }
+
+  // 2. Evitar tomar códigos de operación como monto
+  if (execMonto[1].length >= 5 && /^\d{5,}$/.test(execMonto[1])) {
+    console.warn("⛔ Detectado código de operación en vez de monto → descartado");
     montoPagado = null;
   }
 }
 
-// ------------------------------
-// Evitar códigos de operación cerca
-// ------------------------------
-if (execMonto) {
-  const matchIndex = execMonto.index;
-  const start = Math.max(0, matchIndex - 25);
-  const end = Math.min(text.length, matchIndex + 25);
-  const alrededor = text.substring(start, end);
-
-  if (/operaci[oó]n|c[oó]digo|transacci[oó]n|ope|trx/.test(alrededor)) {
-    console.warn("⛔ Monto cercano a texto de operación → descartado");
-    montoPagado = null;
-  }
-}
-
-// Validación final del monto
+// Validación final
 if (!montoPagado) {
   throw new Error("No se detectó un monto válido en el comprobante.");
 }
@@ -157,28 +145,24 @@ if (montoPagado < totalPedido) {
 
 console.log("💰 Monto detectado:", montoPagado);
 
-
 // ===============================
 // === DETECCIÓN DE HORA =========
 // ===============================
 
-// Hora en formato 24h o 12h con am/pm
-let horaMatchAMPM = text.match(/([01]?\d|2[0-3]):([0-5]\d)\s*(am|pm)/);
-let horaMatch = text.match(/([01]?\d|2[0-3]):([0-5]\d)/);
+// Buscar hora con o sin AM/PM
+let horaMatchAMPM = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\s*(am|pm)\b/);
+let horaMatch     = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
 
 let horaPago = null;
 
-if (horaMatchAMPM) {
-  horaPago = horaMatchAMPM[0].trim();
-} else if (horaMatch) {
-  horaPago = horaMatch[0].trim();
-}
+if (horaMatchAMPM) horaPago = horaMatchAMPM[0].trim();
+else if (horaMatch) horaPago = horaMatch[0].trim();
 
 if (!horaPago) {
   throw new Error("No se encontró la hora del pago en el comprobante.");
 }
 
-// Conversión a minutos para comparar
+// Conversión
 function convertirHora(hora) {
   const ampm = hora.includes("am") || hora.includes("pm");
   let [h, m] = hora.replace(/am|pm/, "").trim().split(":").map(Number);
@@ -188,6 +172,7 @@ function convertirHora(hora) {
     if (esPM && h < 12) h += 12;
     if (!esPM && h === 12) h = 0;
   }
+
   return h * 60 + m;
 }
 
@@ -196,7 +181,7 @@ const ahora = new Date();
 const minutosAhora = ahora.getHours() * 60 + ahora.getMinutes();
 const diferencia = Math.abs(minutosAhora - minutosPago);
 
-// Se permite ±45 minutos
+// Permitir rango ±45 min como Yape real
 if (diferencia > 45) {
   throw new Error(`La hora del pago (${horaPago}) no coincide con el pedido.`);
 }
@@ -338,6 +323,7 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
 
 
