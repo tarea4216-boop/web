@@ -34,54 +34,61 @@
 
   qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
 
-  // === Mapa ===
-  const restaurantLatLng = L.latLng(-12.525472, -76.557917);
-  const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
+// === Mapa ===
+const restaurantLatLng = L.latLng(-12.525472, -76.557917);
+const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-  L.marker(restaurantLatLng).addTo(map).bindPopup('📍 Restaurante El Camarón de Oro').openPopup();
+L.marker(restaurantLatLng).addTo(map).bindPopup('📍 Restaurante El Camarón de Oro').openPopup();
 
-  // === Función para crear óvalos personalizados ===
-  function createOval(center, rxMeters, ryMeters, points = 60) {
-    const latlngs = [];
-    const angleStep = (2 * Math.PI) / points;
-    const earthRadius = 6378137;
-    for (let i = 0; i < points; i++) {
-      const angle = i * angleStep;
-      const dx = rxMeters * Math.cos(angle);
-      const dy = ryMeters * Math.sin(angle);
-      const latOffset = (dy / earthRadius) * (180 / Math.PI);
-      const lngOffset = (dx / (earthRadius * Math.cos(center.lat * Math.PI / 180))) * (180 / Math.PI);
-      latlngs.push([center.lat + latOffset, center.lng + lngOffset]);
-    }
-    return latlngs;
-  }
+// === Coordenadas reales de la carretera: Correviento → Calango ===
+const carreteraCoords = [
+  [-12.533073, -76.571684], // Correviento (inicio)
+  [-12.531853, -76.569013],
+  [-12.530189, -76.566289],
+  [-12.528949, -76.563934],
+  [-12.527669, -76.561447],
+  [-12.526744, -76.559743],
+  [-12.526040, -76.558403],
+  [-12.525472, -76.557917], // Cerca del restaurante
+  [-12.524326, -76.556650],
+  [-12.523457, -76.555651],
+  [-12.522642, -76.554573],
+  [-12.521690, -76.553352],
+  [-12.520760, -76.552070],
+  [-12.519939, -76.550807],
+  [-12.519280, -76.549676],
+  [-12.518633, -76.548418],
+  [-12.517902, -76.546906],
+  [-12.517171, -76.545467],
+  [-12.516373, -76.543891],
+  [-12.515731, -76.542468],
+  [-12.515047, -76.540945],
+  [-12.514355, -76.539504], // Entrada Calango (final)
+];
 
-  // === Áreas de cobertura personalizadas ===
-  const area1 = L.polygon(createOval({ lat: -12.527, lng: -76.563 }, 1800, 800), {
-    color: '#2a9d8f',
-    fillColor: '#2a9d8f',
-    fillOpacity: 0.15
-  }).addTo(map);
+// === Dibujar la carretera ===
+const carreteraPolyline = L.polyline(carreteraCoords, {
+  color: "#2a9d8f",
+  weight: 6,
+  opacity: 0.8
+}).addTo(map);
 
-  const area2 = L.polygon(createOval({ lat: -12.523, lng: -76.550 }, 1600, 600), {
-    color: '#2a9d8f',
-    fillColor: '#2a9d8f',
-    fillOpacity: 0.15
-  }).addTo(map);
+// === Buffer de cobertura (zona válida) ===
+const carreteraBuffer = L.polyline(carreteraCoords, {
+  color: "#2a9d8f",
+  weight: 30, // ancho aprox 30m a cada lado
+  opacity: 0.15
+}).addTo(map);
 
-  // === Validar si un punto está dentro de la cobertura ===
-  function checkCoverage(latlng) {
-    return area1.getBounds().contains(latlng) || area2.getBounds().contains(latlng);
-  }
+// === Validación de cobertura ===
+function checkCoverage(latlng) {
+  return carreteraBuffer.getBounds().contains(latlng);
+}
 
-  let marker = null;
-  let currentUser = null;
-  let selectedLatLng = null;
-  let pagoConfirmado = false;
 
   // === Sesión anónima ===
   try {
