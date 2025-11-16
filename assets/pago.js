@@ -42,71 +42,76 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-L.marker(restaurantLatLng).addTo(map).bindPopup('📍 Restaurante El Camarón de Oro').openPopup();
+L.marker(restaurantLatLng)
+  .addTo(map)
+  .bindPopup('📍 Restaurante El Camarón de Oro')
+  .openPopup();
 
-// === Coordenadas reales de la carretera: Correviento → Calango ===
-const carreteraCoords = [
-  [-12.533073, -76.571684], // Correviento (inicio)
-  [-12.531853, -76.569013],
-  [-12.530189, -76.566289],
-  [-12.528949, -76.563934],
-  [-12.527669, -76.561447],
-  [-12.526744, -76.559743],
-  [-12.526040, -76.558403],
-  [-12.525472, -76.557917], // Cerca del restaurante
-  [-12.524326, -76.556650],
-  [-12.523457, -76.555651],
-  [-12.522642, -76.554573],
-  [-12.521690, -76.553352],
-  [-12.520760, -76.552070],
-  [-12.519939, -76.550807],
-  [-12.519280, -76.549676],
-  [-12.518633, -76.548418],
-  [-12.517902, -76.546906],
-  [-12.517171, -76.545467],
-  [-12.516373, -76.543891],
-  [-12.515731, -76.542468],
-  [-12.515047, -76.540945],
-  [-12.514355, -76.539504], // Entrada Calango (final)
+
+// === ZONA DE COBERTURA EXACTA (ÁREA ROJA) ===
+const zonaCoberturaCoords = [
+  [-12.533400, -76.571900],  // Correviento izquierda
+  [-12.532000, -76.569500],
+  [-12.531000, -76.567300],
+  [-12.529300, -76.564500],
+  [-12.528000, -76.562200],
+  [-12.526800, -76.560100],
+  [-12.525800, -76.558300],  // Cerca restaurante
+
+  // 🟥 ZONA ENSANCHADA (curva hacia el río)
+  [-12.525200, -76.557000],
+  [-12.524200, -76.556000],
+  [-12.523000, -76.554800],
+  [-12.521500, -76.553500],
+
+  // === Entrada a Calango ===
+  [-12.520200, -76.552000],
+  [-12.519000, -76.550300],
+
+  // 🟥 ZONA AMPLIA DERECHA (Mallqui)
+  [-12.518000, -76.549000],
+  [-12.517000, -76.547300],
+  [-12.516500, -76.546000],
+  [-12.516000, -76.544500],
+  [-12.515500, -76.543000],
+  [-12.515200, -76.541500],
+  [-12.514500, -76.540000],
+  [-12.514200, -76.538500],
+
+  // Cierre derecha
+  [-12.515800, -76.537000],
+  [-12.517800, -76.536500],
+  [-12.519800, -76.537700],
+  [-12.521800, -76.539000],
+  [-12.523500, -76.540500],
+  [-12.525000, -76.542000],
+
+  // Cierre general del polígono
+  [-12.526500, -76.544000],
+  [-12.529000, -76.548000],
+  [-12.531000, -76.552000],
+  [-12.533200, -76.555000],
+  [-12.533400, -76.571900]
 ];
 
-// === Dibujar la carretera ===
-const carreteraPolyline = L.polyline(carreteraCoords, {
-  color: "#2a9d8f",
-  weight: 6,
-  opacity: 0.8
+
+// === Dibujar ZONA DE COBERTURA (diseño premium) ===
+const zonaCobertura = L.polygon(zonaCoberturaCoords, {
+  color: "#E63946",
+  weight: 2,
+  fillColor: "#FF6B6B",
+  fillOpacity: 0.35,
+  smoothFactor: 2
 }).addTo(map);
 
-// === Buffer REAL con forma suave (área) ===
-const carreteraGeoJSON = {
-  type: "Feature",
-  geometry: {
-    type: "LineString",
-    coordinates: carreteraCoords.map(c => [c[1], c[0]]) // Leaflet usa [lat,lng] pero Turf usa [lng,lat]
-  }
-};
 
-//  💚 50 metros de buffer (puedes subir a 80 o 100)
-const carreteraBufferTurf = turf.buffer(carreteraGeoJSON, 50, { units: "meters" });
-
-// Convertir a coord Leaflet
-const carreteraBufferCoords = carreteraBufferTurf.geometry.coordinates[0].map(c => [c[1], c[0]]);
-
-// Mostrar área suave
-const carreteraArea = L.polygon(carreteraBufferCoords, {
-  color: "#2a9d8f",
-  weight: 1,
-  fillColor: "#2a9d8f",
-  fillOpacity: 0.25
-}).addTo(map);
-
-// La línea principal encima
-carreteraPolyline.bringToFront();
-
-// === Validación de cobertura usando el polígono real ===
+// === Validación SÚPER PRECISA (Turf.js point-in-polygon) ===
 function checkCoverage(latlng) {
-  return carreteraArea.getBounds().contains(latlng);
+  const pt = turf.point([latlng.lng, latlng.lat]);
+  const poly = turf.polygon([zonaCoberturaCoords.map(c => [c[1], c[0]])]);
+  return turf.booleanPointInPolygon(pt, poly);
 }
+
 
 
 
