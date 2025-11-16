@@ -216,17 +216,31 @@ console.log("⏱ Hora detectada:", horaPago);
 
       console.log("✅ Pedido guardado correctamente en Firebase");
 
-      // === Registrar venta en SUPABASE ===
-      const { error: insertError } = await supabase.from('ventas').insert([{
-        id_pedido: pedidoId,
-        cliente: clienteNombre,
-        total: totalPedido,
-        productos: carrito,
-        fecha: new Date().toISOString()
-      }]);
-      if (insertError) throw insertError;
+    // === Registrar venta en SUPABASE (CON CANTIDADES REALES) ===
 
-      console.log("✅ Venta registrada correctamente en Supabase");
+// Convertir carrito a estructura limpia
+const productosProcesados = carrito.map(item => ({
+  nombre: item.nombre,
+  cantidad: Number(item.qty),
+  precio_unitario: Number(item.precio),
+  subtotal: Number(item.qty) * Number(item.precio)
+}));
+
+const { error: insertError } = await supabase.from('ventas').insert([{
+  id_pedido: pedidoId,
+  cliente: clienteNombre,
+  total: totalPedido,
+  productos: productosProcesados,
+  fecha: new Date().toISOString()
+}]);
+
+if (insertError) {
+  console.error("⚠ Error guardando venta en Supabase:", insertError);
+  throw insertError;
+}
+
+console.log("✅ Venta registrada correctamente en Supabase con cantidades correctas");
+
 
       // === Generar PDF ===
       const { jsPDF } = window.jspdf;
@@ -323,6 +337,7 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
 
 
