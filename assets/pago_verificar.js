@@ -242,28 +242,119 @@ if (insertError) {
 console.log("✅ Venta registrada correctamente en Supabase con cantidades correctas");
 
 
-      // === Generar PDF ===
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(14);
-      doc.text("Comprobante de Pedido - El Camarón de Oro", 15, 20);
-      doc.setFontSize(11);
-      doc.text(`ID Pedido: ${pedidoId}`, 15, 35);
-      doc.text(`Fecha: ${new Date().toLocaleString()}`, 15, 45);
-      doc.text(`Cliente: ${clienteNombre}`, 15, 55);
-      doc.text(`Celular: ${clienteCelular}`, 15, 63);
-      if (clienteReferencia) doc.text(`Referencia: ${clienteReferencia}`, 15, 71);
-      doc.text(`Monto total: S/ ${totalPedido.toFixed(2)}`, 15, 81);
-      doc.text(`Estado: Confirmado`, 15, 91);
-      doc.text("Items:", 15, 105);
-      let y = 115;
-      carrito.forEach(it => {
-        const line = `- ${it.nombre} x${it.qty} — S/ ${(it.precio * it.qty).toFixed(2)}`;
-        doc.text(line, 20, y);
-        y += 8;
-      });
-      doc.text("Gracias por tu compra ❤️", 15, y + 10);
-      doc.save(`Pedido_${pedidoId}.pdf`);
+ // === Generar PDF premium ===
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF("p", "mm", "a4");
+
+// ================================
+// 🟨 CABECERA PREMIUM
+// ================================
+doc.setFillColor(255, 184, 28); // dorado suave
+doc.rect(0, 0, 210, 32, "F");
+
+// Logo opcional (si tienes base64)
+// doc.addImage(logoBase64, "PNG", 10, 5, 22, 22);
+
+doc.setFont("helvetica", "bold");
+doc.setFontSize(22);
+doc.setTextColor(50, 32, 0);
+doc.text("El Camarón de Oro", 15, 20);
+
+doc.setFontSize(12);
+doc.setFont("helvetica", "normal");
+doc.text("Comprobante de Pedido", 195, 20, { align: "right" });
+
+// Línea elegante
+doc.setDrawColor(180, 180, 180);
+doc.line(10, 36, 200, 36);
+
+// ================================
+// 📝 INFORMACIÓN DEL CLIENTE
+// ================================
+let y = 48;
+doc.setTextColor(60, 60, 60);
+doc.setFontSize(12);
+
+const secciones = [
+  `ID Pedido: ${pedidoId}`,
+  `Fecha: ${new Date().toLocaleString()}`,
+  `Cliente: ${clienteNombre}`,
+  `Celular: ${clienteCelular}`
+];
+if (clienteReferencia) secciones.push(`Referencia: ${clienteReferencia}`);
+
+secciones.forEach(t => {
+  doc.text(t, 15, y);
+  y += 7;
+});
+
+// Separador fino
+doc.setDrawColor(220, 220, 220);
+doc.line(10, y + 4, 200, y + 4);
+y += 15;
+
+// ================================
+// 🍽️ DETALLE DE ITEMS
+// ================================
+doc.setFont("helvetica", "bold");
+doc.setFontSize(14);
+doc.setTextColor(40, 40, 40);
+doc.text("Detalle del Pedido", 15, y);
+y += 10;
+
+// Encabezados
+doc.setFontSize(12);
+doc.text("Producto", 15, y);
+doc.text("Cantidad", 115, y);
+doc.text("Subtotal", 170, y, { align: "right" });
+y += 5;
+
+// Línea debajo de títulos
+doc.setDrawColor(180, 180, 180);
+doc.line(10, y, 200, y);
+y += 7;
+
+// Items
+doc.setFont("helvetica", "normal");
+doc.setFontSize(11);
+carrito.forEach(it => {
+  doc.text(it.nombre, 15, y);
+  doc.text(String(it.qty), 120, y);
+  doc.text(`S/ ${(it.precio * it.qty).toFixed(2)}`, 195, y, { align: "right" });
+  y += 7;
+});
+
+// ================================
+// 💳 TOTAL DESTACADO PREMIUM
+// ================================
+y += 10;
+
+// Caja resaltada
+doc.setFillColor(255, 236, 180); // dorado suave claro
+doc.roundedRect(10, y, 190, 14, 3, 3, "F");
+
+doc.setFont("helvetica", "bold");
+doc.setFontSize(14);
+doc.setTextColor(60, 40, 0);
+doc.text(`TOTAL:  S/ ${totalPedido.toFixed(2)}`, 20, y + 10);
+
+// ================================
+// ❤️ PIE DE PÁGINA
+// ================================
+doc.setFontSize(11);
+doc.setFont("helvetica", "normal");
+doc.setTextColor(100, 100, 100);
+doc.text(
+  "Gracias por confiar en nosotros ❤️\nEl Camarón de Oro – Sabor que te acompaña",
+  15,
+  275
+);
+
+// ================================
+// 📄 GUARDAR
+// ================================
+doc.save(`Pedido_${pedidoId}.pdf`);
+
 
       if (window.bloquearMapaPago) window.bloquearMapaPago();
 
@@ -337,6 +428,7 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
 
 
