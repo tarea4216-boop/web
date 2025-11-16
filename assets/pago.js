@@ -77,17 +77,37 @@ const carreteraPolyline = L.polyline(carreteraCoords, {
   opacity: 0.8
 }).addTo(map);
 
-// === Buffer de cobertura (zona válida) ===
-const carreteraBuffer = L.polyline(carreteraCoords, {
+// === Buffer REAL con forma suave (área) ===
+const carreteraGeoJSON = {
+  type: "Feature",
+  geometry: {
+    type: "LineString",
+    coordinates: carreteraCoords.map(c => [c[1], c[0]]) // Leaflet usa [lat,lng] pero Turf usa [lng,lat]
+  }
+};
+
+//  💚 50 metros de buffer (puedes subir a 80 o 100)
+const carreteraBufferTurf = turf.buffer(carreteraGeoJSON, 50, { units: "meters" });
+
+// Convertir a coord Leaflet
+const carreteraBufferCoords = carreteraBufferTurf.geometry.coordinates[0].map(c => [c[1], c[0]]);
+
+// Mostrar área suave
+const carreteraArea = L.polygon(carreteraBufferCoords, {
   color: "#2a9d8f",
-  weight: 30, // ancho aprox 30m a cada lado
-  opacity: 0.15
+  weight: 1,
+  fillColor: "#2a9d8f",
+  fillOpacity: 0.25
 }).addTo(map);
 
-// === Validación de cobertura ===
+// La línea principal encima
+carreteraPolyline.bringToFront();
+
+// === Validación de cobertura usando el polígono real ===
 function checkCoverage(latlng) {
-  return carreteraBuffer.getBounds().contains(latlng);
+  return carreteraArea.getBounds().contains(latlng);
 }
+
 
 
   // === Sesión anónima ===
