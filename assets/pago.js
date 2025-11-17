@@ -5,6 +5,10 @@
   const qrContainer = document.getElementById('qr');
   const coverageMsg = document.getElementById('coverage-msg');
 
+  let marker = null;
+  let selectedLatLng = null;
+  let pagoBloqueado = false; // ← FLAG REAL
+
   if (!cart.length) {
     summary.innerHTML = '<p>Tu carrito está vacío.</p>';
     showToast("⚠️ Tu carrito está vacío", "error");
@@ -34,92 +38,139 @@
 
   qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
 
-  // === MAPA === 
-const restaurantLatLng = L.latLng(-12.525472, -76.557917);
-const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
+  // === MAPA ===
+  const restaurantLatLng = L.latLng(-12.525472, -76.557917);
+  const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-L.marker(restaurantLatLng)
-  .addTo(map)
-  .bindPopup('📍 Restaurante El Camarón de Oro')
-  .openPopup();
+  L.marker(restaurantLatLng)
+    .addTo(map)
+    .bindPopup('📍 Restaurante El Camarón de Oro')
+    .openPopup();
 
+  // === POLÍGONO ===
+  const coverageCoords = [
+    [-12.53008, -76.57879],
+    [-12.53110, -76.57419],
+    [-12.52966, -76.57315],
+    [-12.52804, -76.57111],
+    [-12.52660, -76.56970],
+    [-12.52434, -76.56974],
+    [-12.52375, -76.56680],
+    [-12.52371, -76.56554],
+    [-12.52590, -76.55640],
+    [-12.52650, -76.55280],
+    [-12.52684, -76.54852],
+    [-12.52049, -76.54789],
+    [-12.52053, -76.54597],
+    [-12.52394, -76.54587],
+    [-12.52389, -76.54133],
+    [-12.52675, -76.54120],
+    [-12.52820, -76.54260],
+    [-12.52740, -76.54890],
+    [-12.52698, -76.57774],
+    [-12.52900, -76.57840],
+    [-12.53008, -76.57879]
+  ];
 
-// === POLÍGONO REFINADO (SIN CRUCES - FORMA EXACTA MEJORADA) ===
-const coverageCoords = [
-  // ZONA IZQUIERDA
-  [-12.53008, -76.57879],
-  [-12.53110, -76.57419],
-  [-12.52966, -76.57315],
-  [-12.52804, -76.57111],
-  [-12.52660, -76.56970],
-  [-12.52434, -76.56974],
-  [-12.52375, -76.56680],
-  [-12.52371, -76.56554],
+  const polygon = L.polygon(coverageCoords, {
+    color: "#D00000",
+    weight: 2,
+    fillColor: "#FF6B6B",
+    fillOpacity: 0.45,
+    smoothFactor: 1.3
+  }).addTo(map);
 
-  // TRAMO CENTRAL
-  [-12.52590, -76.55640],
-  [-12.52650, -76.55280],
-  [-12.52684, -76.54852],
-
-  // ZONA DERECHA GRANDE
-  [-12.52049, -76.54789],
-  [-12.52053, -76.54597],
-  [-12.52394, -76.54587],
-  [-12.52389, -76.54133],
-  [-12.52675, -76.54120],
-
-  // VUELTA COMPLETA HACIA LA IZQUIERDA
-  [-12.52820, -76.54260],
-  [-12.52740, -76.54890],
-  [-12.52698, -76.57774],
-
-  // CIERRE SUAVE
-  [-12.52900, -76.57840],
-  [-12.53008, -76.57879]
-];
-
-// === POLÍGONO ===
-const polygon = L.polygon(coverageCoords, {
-  color: "#D00000",
-  weight: 2,
-  fillColor: "#FF6B6B",
-  fillOpacity: 0.45,
-  smoothFactor: 1.3
-}).addTo(map);
-
-
-// === VALIDACIÓN DE PUNTO ===
-function checkCoverage(latlng) {
-  const pt = turf.point([latlng.lng, latlng.lat]);
-  const poly = turf.polygon([
-    coverageCoords.map(c => [c[1], c[0]])
-  ]);
-  return turf.booleanPointInPolygon(pt, poly);
-}
-
-
-// === EVENTO DE CLICK EN EL MAPA ===
-map.on("click", (e) => {
-  if (checkCoverage(e.latlng)) {
-    pagoConfirmado();   // ← ya no dará error
-  } else {
-    alert("Fuera del área de cobertura ❌");
+  // === VALIDACIÓN DE PUNTO ===
+  function checkCoverage(latlng) {
+    const pt = turf.point([latlng.lng, latlng.lat]);
+    const poly = turf.polygon([
+      coverageCoords.map(c => [c[1], c[0]])
+    ]);
+    return turf.booleanPointInPolygon(pt, poly);
   }
-});
 
+  // ================================
+  // === CLICK EN EL MAPA (ÚNICO) ===
+  // ================================
+  map.on('click', function (e) {
+    if (pagoBloqueado) {
+      showToast("✅ El pago ya fue confirmado.", "info");
+      return;
+    }
 
-// === FUNCIÓN PARA EVITAR ERROR ===
-function pagoConfirmado() {
-  console.log("✔ Click válido dentro del área");
-  alert("Área válida ✔ Puedes continuar con tu pedido");
-}
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(map);
+    selectedLatLng = e.latlng;
 
+    if (!checkCoverage(selectedLatLng)) {
+      coverageMsg.textContent = '⚠️ Fuera de cobertura.';
+      qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
+      showToast("⚠️ Estás fuera del área de entrega.", "error");
+      return;
+    }
 
+    coverageMsg.textContent = '✅ Dentro de cobertura.';
+    showToast("✅ Ubicación válida", "success");
 
+    qrContainer.innerHTML = `
+      <h4>Datos para la entrega</h4>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:400px;">
+        <input type="text" id="cliente-nombre" placeholder="👤 Nombre completo" style="padding:10px;border-radius:6px;border:1px solid #ccc;">
+        <input type="tel" id="cliente-celular" placeholder="📱 Número de celular" maxlength="9" style="padding:10px;border-radius:6px;border:1px solid #ccc;">
+        <textarea id="cliente-referencia" placeholder="🏠 Referencia del lugar" rows="2" style="padding:10px;border-radius:6px;border:1px solid #ccc;"></textarea>
+        <button id="continuar-pago" class="btn primary">Continuar al pago</button>
+      </div>
+    `;
+
+    qrContainer.dataset.lat = selectedLatLng.lat;
+    qrContainer.dataset.lng = selectedLatLng.lng;
+    qrContainer.dataset.total = total;
+    qrContainer.dataset.uid = currentUser.uid;
+    qrContainer.dataset.pedidoId = `pedido-${Date.now()}`;
+
+    document.getElementById('continuar-pago').addEventListener('click', () => {
+      const nombre = document.getElementById('cliente-nombre').value.trim();
+      const celular = document.getElementById('cliente-celular').value.trim();
+      const referencia = document.getElementById('cliente-referencia').value.trim();
+
+      if (!nombre || !celular) {
+        showToast("⚠️ Ingresa tu nombre y número de celular.", "error");
+        return;
+      }
+
+      const cartWithComments = cart.map((it, index) => {
+        const textarea = document.getElementById(`comentario-${index}`);
+        return { ...it, comentario: textarea?.value?.trim() || "" };
+      });
+
+      Object.assign(qrContainer.dataset, {
+        nombre, celular, referencia,
+        cart: JSON.stringify(cartWithComments)
+      });
+
+      qrContainer.innerHTML = `
+        <h4>Resumen de tu pedido</h4>
+        <p><b>Cliente:</b> ${nombre}</p>
+        <p><b>Celular:</b> ${celular}</p>
+        <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
+        <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
+        <p style="font-size:0.9rem;">Sube la captura del pago para verificar.</p>
+      `;
+
+      const script = document.createElement('script');
+      script.id = "verificadorScript";
+      script.type = "module";
+      script.src = 'assets/pago_verificar.js';
+      document.body.appendChild(script);
+
+      localStorage.removeItem(STORAGE_KEY);
+      pagoBloqueado = true;
+    });
+  });
 
   // === Sesión anónima ===
   try {
@@ -133,6 +184,9 @@ function pagoConfirmado() {
     showToast("❌ Error al conectarse a Firebase.", "error");
     return;
   }
+
+})();
+
 
   // === Click en el mapa ===
   map.on('click', function (e) {
