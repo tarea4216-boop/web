@@ -87,6 +87,44 @@ text = text
 
 console.log("📝 Texto OCR procesado:", text);
 
+      // ===============================
+// === VERIFICACIÓN DEL DESTINATARIO ===
+// ===============================
+
+// Nombre real del destinatario
+const destinatarioReal = "dennys e german l";
+
+// Normalizar texto OCR para evitar tildes y mayúsculas
+const normalizar = (str) =>
+  str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // quitar tildes
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const textoNormalizado = normalizar(text);
+
+// Palabras clave que SÍ o SÍ deben aparecer en un voucher real
+const claves = ["denny", "german"];  // tolera variaciones tipo “dennys”, “germán”
+
+let coincidencias = 0;
+for (const palabra of claves) {
+  if (textoNormalizado.includes(palabra)) coincidencias++;
+}
+
+// Verificación final
+if (coincidencias < claves.length) {
+  console.error("⛔ Destinatario incorrecto:", textoNormalizado);
+  throw new Error(
+    "El comprobante NO pertenece al destinatario correcto (Dennys E. German L.)."
+  );
+}
+
+console.log("✅ Destinatario verificado correctamente.");
+
+
 // ===============================
 // === DETECCIÓN DE MONTO ========
 // ===============================
@@ -439,6 +477,7 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
 
 
