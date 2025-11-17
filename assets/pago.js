@@ -33,7 +33,8 @@
   summary.innerHTML += `<p><b>Total:</b> S/ ${total.toFixed(2)}</p>`;
 
   qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
-// === Mapa === 
+
+  // === MAPA === 
 const restaurantLatLng = L.latLng(-12.525472, -76.557917);
 const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
 
@@ -47,53 +48,41 @@ L.marker(restaurantLatLng)
   .openPopup();
 
 
-// === COORDENADAS REFINADAS (SE PARECEN AL ÁREA ROJA) ===
-// *Ordenadas por el recorrido del camino real*
+// === POLÍGONO REFINADO (SIN CRUCES - FORMA EXACTA MEJORADA) ===
 const coverageCoords = [
-  // Zona izquierda grande
-  [-12.53008, -76.57879],  
-  [-12.53060, -76.57710],
-  [-12.53110, -76.57419],  
-  [-12.53040, -76.57360],
-  [-12.52966, -76.57315],  
-  [-12.52890, -76.57220],
-  [-12.52804, -76.57111],  
+  // ZONA IZQUIERDA
+  [-12.53008, -76.57879],
+  [-12.53110, -76.57419],
+  [-12.52966, -76.57315],
+  [-12.52804, -76.57111],
+  [-12.52660, -76.56970],
+  [-12.52434, -76.56974],
+  [-12.52375, -76.56680],
+  [-12.52371, -76.56554],
 
-  // Borde inferior de la zona izquierda
-  [-12.52750, -76.57270],
-  [-12.52720, -76.57400],
-  [-12.52698, -76.57774],  
-  [-12.52840, -76.57835],
-  [-12.52920, -76.57860],
+  // TRAMO CENTRAL
+  [-12.52590, -76.55640],
+  [-12.52650, -76.55280],
+  [-12.52684, -76.54852],
 
-  // Conexión intermedia curva
-  [-12.52800, -76.57060],
-  [-12.52660, -76.56970],  
-  [-12.52570, -76.56950],
-  [-12.52434, -76.56974],  
-  [-12.52400, -76.56820],
-  [-12.52375, -76.56680],  
-  [-12.52372, -76.56554],  
+  // ZONA DERECHA GRANDE
+  [-12.52049, -76.54789],
+  [-12.52053, -76.54597],
+  [-12.52394, -76.54587],
+  [-12.52389, -76.54133],
+  [-12.52675, -76.54120],
 
-  // Recta larga central siguiendo la carretera
-  [-12.52460, -76.56280],
-  [-12.52520, -76.56020],
-  [-12.52590, -76.55640],  
-  [-12.52620, -76.55460],
-  [-12.52650, -76.55280],  
-  [-12.52670, -76.55090],
-  [-12.52684, -76.54852],  
+  // VUELTA COMPLETA HACIA LA IZQUIERDA
+  [-12.52820, -76.54260],
+  [-12.52740, -76.54890],
+  [-12.52698, -76.57774],
 
-  // Zona derecha (forma tipo “L”)
-  [-12.52370, -76.54760],
-  [-12.52049, -76.54789],  
-  [-12.52053, -76.54597],  
-  [-12.52394, -76.54587],  
-  [-12.52389, -76.54133],  
-  [-12.52675, -76.54120]  
+  // CIERRE SUAVE
+  [-12.52900, -76.57840],
+  [-12.53008, -76.57879]
 ];
 
-// === POLÍGONO CON "SUAVIZADO" VISUAL ===
+// === POLÍGONO ===
 const polygon = L.polygon(coverageCoords, {
   color: "#D00000",
   weight: 2,
@@ -103,14 +92,30 @@ const polygon = L.polygon(coverageCoords, {
 }).addTo(map);
 
 
-
-// === VALIDACIÓN DE PUNTO (CORREGIDO) ===
+// === VALIDACIÓN DE PUNTO ===
 function checkCoverage(latlng) {
   const pt = turf.point([latlng.lng, latlng.lat]);
   const poly = turf.polygon([
     coverageCoords.map(c => [c[1], c[0]])
   ]);
   return turf.booleanPointInPolygon(pt, poly);
+}
+
+
+// === EVENTO DE CLICK EN EL MAPA ===
+map.on("click", (e) => {
+  if (checkCoverage(e.latlng)) {
+    pagoConfirmado();   // ← ya no dará error
+  } else {
+    alert("Fuera del área de cobertura ❌");
+  }
+});
+
+
+// === FUNCIÓN PARA EVITAR ERROR ===
+function pagoConfirmado() {
+  console.log("✔ Click válido dentro del área");
+  alert("Área válida ✔ Puedes continuar con tu pedido");
 }
 
 
