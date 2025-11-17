@@ -33,7 +33,6 @@
   summary.innerHTML += `<p><b>Total:</b> S/ ${total.toFixed(2)}</p>`;
 
   qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
-
 // === Mapa === 
 const restaurantLatLng = L.latLng(-12.525472, -76.557917);
 const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
@@ -48,42 +47,55 @@ L.marker(restaurantLatLng)
   .openPopup();
 
 
-// === COORDENADAS EXACTAS SEGÚN TU IMAGEN ===
-const rawCoords = [
-  [-12.5300483, -76.5787853],
-  [-12.5311762, -76.5741907],
-  [-12.5296677, -76.5731544],
-  [-12.5269806, -76.5777460],
+// === COORDENADAS REFINADAS (SE PARECEN AL ÁREA ROJA) ===
+// *Ordenadas por el recorrido del camino real*
+const coverageCoords = [
+  // Zona izquierda grande
+  [-12.52995, -76.57875],
+  [-12.53110, -76.57415],
+  [-12.52964, -76.57316],
+  [-12.52804, -76.57111],
+  [-12.52698, -76.57774],
+  [-12.53000, -76.57870],
+  
+  // Conexión curva intermedia
+  [-12.52660, -76.56970],
+  [-12.52430, -76.56972],
+  [-12.52375, -76.56680],
+  [-12.52371, -76.56554],
 
-  [-12.5280944, -76.5711129],
-  [-12.5243446, -76.5697439],
+  // Recta larga central
+  [-12.52590, -76.55640],
+  [-12.52650, -76.55280],
+  [-12.52684, -76.54852],
 
-  [-12.5237290, -76.5655450],
-  [-12.5268430, -76.5485250],
+  // Zona derecha grande
+  [-12.52049, -76.54789],
+  [-12.52053, -76.54597],
+  [-12.52394, -76.54587],
+  [-12.52389, -76.54133],
+  [-12.52675, -76.54120],
 
-  [-12.5204910, -76.5478940],
-  [-12.5205360, -76.5459790],
-  [-12.5239380, -76.5458750],
-  [-12.5238930, -76.5413380],
-  [-12.5267520, -76.5412020],
-
-  [-12.5300483, -76.5787853] // cierre exacto
+  // Cierra polígono automáticamente
 ];
 
 
-// === CREAR POLÍGONO SIN MODIFICAR LA FORMA ===
-const polygon = L.polygon(rawCoords, {
-  color: "#E63946",
+// === POLÍGONO CON "SUAVIZADO" VISUAL ===
+const polygon = L.polygon(coverageCoords, {
+  color: "#C1121F",
   weight: 2,
   fillColor: "#FF6B6B",
-  fillOpacity: 0.40
+  fillOpacity: 0.45,
+  smoothFactor: 1.5   // ← suaviza curvas
 }).addTo(map);
 
 
-// === VALIDACIÓN DE PUNTO ===
+// === VALIDACIÓN DE PUNTO (CORREGIDO) ===
 function checkCoverage(latlng) {
   const pt = turf.point([latlng.lng, latlng.lat]);
-  const poly = turf.polygon([ rawCoords.map(c => [c[1], c[0]]) ]);
+  const poly = turf.polygon([
+    coverageCoords.map(c => [c[1], c[0]])
+  ]);
   return turf.booleanPointInPolygon(pt, poly);
 }
 
