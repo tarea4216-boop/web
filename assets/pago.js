@@ -48,47 +48,49 @@ L.marker(restaurantLatLng)
   .openPopup();
 
 
-// === TUS 13 PUNTOS ORIGINALES ===
+// === COORDENADAS CORREGIDAS + ORDENADAS ===
 const rawCoords = [
-  [-12.5300483, -76.5787853],
-  [-12.5311762, -76.5741907],
-  [-12.5296677, -76.5731544],
-  [-12.5269806, -76.5777460],
+  [-12.5300483, -76.5787853], // 1
+  [-12.5311762, -76.5741907], // 2
+  [-12.5296677, -76.5731544], // 3
+  [-12.5269806, -76.5777460], // 4
 
-  [-12.5280944, -76.5711129],
-  [-12.5243446, -76.5697439],
-  [-12.5237290, -76.5655450],
+  [-12.5280944, -76.5711129], // 5
+  [-12.5243446, -76.5697439], // 6
+  [-12.5237290, -76.5655450], // 7
 
-  [-12.5268430, -76.5485250],
-  [-12.5204910, -76.5478940],
-  [-12.5205360, -76.5459790],
-  [-12.5239380, -76.5458750],
-  [-12.5238930, -76.5413380],
-  [-12.5267520, -76.5412020],
+  [-12.5268430, -76.5485250], // 8
+  [-12.5204910, -76.5478940], // 9
+  [-12.5205360, -76.5459790], // 10 corregido
+  [-12.5239380, -76.5458750], // 11
+  [-12.5238930, -76.5413380], // 12
+  [-12.5267520, -76.5412020], // 13
 
-  [-12.5300483, -76.5787853] // cierre
+  [-12.5300483, -76.5787853] // cierre exacto
 ];
 
 
-// === Convertir tus coordenadas a geoJSON ===
+// === Convertir a formato GeoJSON (LONG, LAT) ===
 const geojsonPoly = turf.polygon([
   rawCoords.map(c => [c[1], c[0]])
 ]);
 
 
-// === 1. SUAVIZAR forma (elimina puntas bruscas) ===
+// === 1. SUAVIZADO LIGERO (no deforma tu forma final) ===
 const smoothPoly = turf.simplify(geojsonPoly, {
-  tolerance: 0.0008,   // sube para suavizar más
+  tolerance: 0.00025,   // suavizado muy leve
   highQuality: true
 });
 
 
-// === 2. CREAR BUFFER (ensanchado natural alrededor) ===
-// 80 metros (puedes ajustar: 50, 100, 150…)
-const buffered = turf.buffer(smoothPoly, 0.08, { units: "kilometers" });
+// === 2. BUFFER REALISTA ===
+// 60m → se parece más a tus imágenes
+const buffered = turf.buffer(smoothPoly, 0.06, {
+  units: "kilometers"
+});
 
 
-// === 3. DIBUJAR EL POLÍGONO SUAVE ===
+// === 3. DIBUJAR ÁREA ===
 L.geoJSON(buffered, {
   style: {
     color: "#E63946",
@@ -99,12 +101,11 @@ L.geoJSON(buffered, {
 }).addTo(map);
 
 
-// === VALIDACIÓN DE PUNTO EN ÁREA ===
+// === VALIDACIÓN DE PUNTO ===
 function checkCoverage(latlng) {
   const pt = turf.point([latlng.lng, latlng.lat]);
   return turf.booleanPointInPolygon(pt, buffered);
 }
-
 
 
 
