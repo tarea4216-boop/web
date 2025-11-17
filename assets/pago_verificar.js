@@ -91,20 +91,31 @@ console.log("📝 Texto OCR procesado:", text);
 // === DETECCIÓN DE MONTO ========
 // ===============================
 
-// Regex EXACTO para comprobantes reales "s/3.50"
-const regexMontoSeguro = /s[\/]?\s*([0-9]+\.[0-9]{1,2})/i;
+// Limpieza ya aplicada previamente en "text"
+
+// Regex seguro que detecta: 
+// s/3 — s/3.5 — s/3.50 — S/ 10 — S10 — S/.10 — etc
+const regexMontoSeguro = /s[\/.]?\s*([0-9]+(?:\.[0-9]{1,2})?)/i;
 let execMonto = regexMontoSeguro.exec(text);
 
 let montoPagado = null;
 
-// Plan B — solo números tipo "3.50"
+// Plan B — detecta solo números sueltos
+// PERO ahora también acepta enteros sin decimales
 if (!execMonto) {
-  execMonto = /\b([0-9]+\.[0-9]{1,2})\b/.exec(text);
+  execMonto = /\b([0-9]+(?:\.[0-9]{1,2})?)\b/.exec(text);
 }
 
-// Convertir
+// Conversión
 if (execMonto) {
-  montoPagado = parseFloat(execMonto[1]);
+  let num = execMonto[1];
+
+  // Si detecta un entero sin decimales: "3" → 3.00
+  if (/^[0-9]+$/.test(num)) {
+    montoPagado = parseFloat(num + ".00");
+  } else {
+    montoPagado = parseFloat(num);
+  }
 }
 
 // Filtro de rango válido
@@ -118,16 +129,15 @@ if (!montoPagado || isNaN(montoPagado) || montoPagado <= 0 || montoPagado > 1500
 
 if (execMonto) {
 
-  // 1. Evitar confundir hora y monto
   const alrededor = text.substring(execMonto.index - 6, execMonto.index + 6);
 
-  // Solo se descarta si el MATCH completo es una hora
+  // 1. Evitar confundir hora con monto
   if (/^\d{1,2}\.\d{2}$/.test(execMonto[1]) && /\d{1,2}:\d{2}/.test(alrededor)) {
     console.warn("⛔ Monto confundido con hora → descartado");
     montoPagado = null;
   }
 
-  // 2. Evitar tomar códigos de operación como monto
+  // 2. Evitar códigos de operación (5+ dígitos)
   if (execMonto[1].length >= 5 && /^\d{5,}$/.test(execMonto[1])) {
     console.warn("⛔ Detectado código de operación en vez de monto → descartado");
     montoPagado = null;
@@ -144,6 +154,7 @@ if (montoPagado < totalPedido) {
 }
 
 console.log("💰 Monto detectado:", montoPagado);
+
 
 // ===============================
 // === DETECCIÓN DE HORA =========
@@ -428,6 +439,7 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
 
 
