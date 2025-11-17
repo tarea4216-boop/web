@@ -46,93 +46,116 @@
   qrContainer.innerHTML = `<p style="color:#555;font-size:0.9rem;">📍 Selecciona tu ubicación en el mapa para continuar con el pago.</p>`;
 
 
-  // ---------------------
-  //  MAPA
-  // ---------------------
-  const restaurantLatLng = L.latLng(-12.525472, -76.557917);
-  const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
+// ---------------------
+//  MAPA (estilo moderno)
+// ---------------------
+const restaurantLatLng = L.latLng(-12.525472, -76.557917);
+const map = L.map('map').setView([restaurantLatLng.lat, restaurantLatLng.lng], 15);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+// Estilo de mapa moderno
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap & CartoDB'
+}).addTo(map);
 
-  L.marker(restaurantLatLng)
-    .addTo(map)
-    .bindPopup('📍 Restaurante El Camarón de Oro')
-    .openPopup();
+// ---------------------
+// ICONOS CON EMOJIS
+// ---------------------
+const emojiIcon = (emoji) => L.divIcon({
+  html: `<div style="
+      font-size: 34px;
+      line-height: 34px;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  ">${emoji}</div>`,
+  className: "emoji-marker",
+  iconSize: [34, 34],
+  iconAnchor: [17, 17]
+});
 
-
-  // ---------------------
-  //  POLÍGONO DE COBERTURA
-  // ---------------------
-  const coverageCoords = [
-    [-12.53008, -76.57879],
-    [-12.53110, -76.57419],
-    [-12.52966, -76.57315],
-    [-12.52804, -76.57111],
-    [-12.52660, -76.56970],
-    [-12.52434, -76.56974],
-    [-12.52375, -76.56680],
-    [-12.52371, -76.56554],
-    [-12.52590, -76.55640],
-    [-12.52650, -76.55280],
-    [-12.52684, -76.54852],
-    [-12.52049, -76.54789],
-    [-12.52053, -76.54597],
-    [-12.52394, -76.54587],
-    [-12.52389, -76.54133],
-    [-12.52675, -76.54120],
-    [-12.52820, -76.54260],
-    [-12.52740, -76.54890],
-    [-12.52698, -76.57774],
-    [-12.52900, -76.57840],
-    [-12.53008, -76.57879]
-  ];
-
-  const polygon = L.polygon(coverageCoords, {
-    color: "#D00000",
-    weight: 2,
-    fillColor: "#FF6B6B",
-    fillOpacity: 0.45,
-    smoothFactor: 1.3
-  }).addTo(map);
+// Marcador del restaurante (emoji 🍤)
+L.marker(restaurantLatLng, { icon: emojiIcon("🍤") })
+  .addTo(map)
+  .bindPopup('🍤 Restaurante El Camarón de Oro')
+  .openPopup();
 
 
-  // ---------------------
-  //  VALIDAR COBERTURA
-  // ---------------------
-  function checkCoverage(latlng) {
-    const pt = turf.point([latlng.lng, latlng.lat]);
-    const poly = turf.polygon([
-      coverageCoords.map(c => [c[1], c[0]])
-    ]);
-    return turf.booleanPointInPolygon(pt, poly);
+// ---------------------
+//  POLÍGONO DE COBERTURA (más moderno)
+// ---------------------
+const coverageCoords = [
+  [-12.53008, -76.57879],
+  [-12.53110, -76.57419],
+  [-12.52966, -76.57315],
+  [-12.52804, -76.57111],
+  [-12.52660, -76.56970],
+  [-12.52434, -76.56974],
+  [-12.52375, -76.56680],
+  [-12.52371, -76.56554],
+  [-12.52590, -76.55640],
+  [-12.52650, -76.55280],
+  [-12.52684, -76.54852],
+  [-12.52049, -76.54789],
+  [-12.52053, -76.54597],
+  [-12.52394, -76.54587],
+  [-12.52389, -76.54133],
+  [-12.52675, -76.54120],
+  [-12.52820, -76.54260],
+  [-12.52740, -76.54890],
+  [-12.52698, -76.57774],
+  [-12.52900, -76.57840],
+  [-12.53008, -76.57879]
+];
+
+const polygon = L.polygon(coverageCoords, {
+  color: "#0077FF",
+  weight: 3,
+  fillColor: "#66B3FF",
+  fillOpacity: 0.25,
+  smoothFactor: 1.5,
+  dashArray: "6 6"
+}).addTo(map);
+
+
+// ---------------------
+//  VALIDAR COBERTURA
+// ---------------------
+function checkCoverage(latlng) {
+  const pt = turf.point([latlng.lng, latlng.lat]);
+  const poly = turf.polygon([
+    coverageCoords.map(c => [c[1], c[0]])
+  ]);
+  return turf.booleanPointInPolygon(pt, poly);
+}
+
+
+// -----------------------------
+//  CLICK EN MAPA (ÚNICO)
+// -----------------------------
+map.on('click', function (e) {
+
+  if (pagoBloqueado) {
+    showToast("ℹ️ Ya no puedes cambiar la ubicación, pago en proceso.", "info");
+    return;
   }
 
+  if (marker) map.removeLayer(marker);
 
-  // -----------------------------
-  //  CLICK EN MAPA (ÚNICO)
-  // -----------------------------
-  map.on('click', function (e) {
+  // Marcador del usuario con emoji 📍
+  marker = L.marker(e.latlng, { icon: emojiIcon("📍") }).addTo(map);
 
-    if (pagoBloqueado) {
-      showToast("ℹ️ Ya no puedes cambiar la ubicación, pago en proceso.", "info");
-      return;
-    }
+  selectedLatLng = e.latlng;
 
-    if (marker) map.removeLayer(marker);
-    marker = L.marker(e.latlng).addTo(map);
-    selectedLatLng = e.latlng;
+  if (!checkCoverage(selectedLatLng)) {
+    coverageMsg.textContent = '⚠️ Fuera de cobertura.';
+    qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
+    showToast("⚠️ Estás fuera del área de entrega.", "error");
+    return;
+  }
 
-    if (!checkCoverage(selectedLatLng)) {
-      coverageMsg.textContent = '⚠️ Fuera de cobertura.';
-      qrContainer.innerHTML = `<p style="color:#c00;">⚠️ Estás fuera del área de entrega.</p>`;
-      showToast("⚠️ Estás fuera del área de entrega.", "error");
-      return;
-    }
+  coverageMsg.textContent = '✅ Dentro de cobertura.';
+  showToast("✅ Ubicación válida", "success");
+});
 
-    coverageMsg.textContent = '✅ Dentro de cobertura.';
-    showToast("✅ Ubicación válida", "success");
 
     // FORMULARIO DE DATOS
     qrContainer.innerHTML = `
