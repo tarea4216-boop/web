@@ -48,70 +48,51 @@ L.marker(restaurantLatLng)
   .openPopup();
 
 
-// === ZONA DE COBERTURA EXACTA (ÁREA ROJA) ===
-// === ZONA DE COBERTURA CORREGIDA ===
-// (Forma fiel al mapa que enviaste)
+// === ZONA DE COBERTURA BASADA EN TUS 13 PUNTOS REALES ===
 const zonaCoberturaCoords = [
-  // Lado izquierdo (Correviento)
-  [-12.533500, -76.571900],
-  [-12.533000, -76.570900],
-  [-12.532400, -76.569700],
-  [-12.531500, -76.568300],
+  // === BLOQUE IZQUIERDO (puntos 1,2,3,4)
+  [-12.5300483, -76.5787853],  // 1
+  [-12.5311762, -76.5741907],  // 2
+  [-12.5296677, -76.5731544],  // 3
+  [-12.5269806, -76.5777460],  // 4
 
-  // Centro cerca del restaurante
-  [-12.530300, -76.566700],
-  [-12.529200, -76.565200],
-  [-12.528300, -76.563900],
-  [-12.527400, -76.562500],
-  [-12.526600, -76.561300],
-  [-12.525900, -76.560300],
-  [-12.525300, -76.559500],
-  [-12.524700, -76.558800],
+  // === UNIÓN POR EL CAMINO (punto 5,6,7)
+  [-12.5280944, -76.5711129],  // 5
+  [-12.5243446, -76.5697439],  // 6
+  [-12.5237290, -76.5655450],  // 7
 
-  // Entrada Calango (lado derecho)
-  [-12.523900, -76.557800],
-  [-12.523200, -76.556900],
-  [-12.522400, -76.555800],
-  [-12.521700, -76.554800],
-  [-12.521200, -76.553900],
+  // === ZONA AMPLIA DERECHA (Mallqui) (puntos 8–13)
+  [-12.5268430, -76.5485250],  // 8
+  [-12.5204910, -76.5478940],  // 9
+  [-12.5205360, -76.5459790],  // 10
+  [-12.5239380, -76.5458750],  // 11
+  [-12.5238930, -76.5413380],  // 12
+  [-12.5267520, -76.5412020],  // 13
 
-  // Cierre del polígono por abajo (regresa)
-  [-12.521800, -76.554900],
-  [-12.522500, -76.555900],
-  [-12.523300, -76.557000],
-  [-12.524100, -76.558000],
-  [-12.524900, -76.559100],
-  [-12.525600, -76.560000],
-  [-12.526400, -76.561200],
-  [-12.527200, -76.562400],
-  [-12.528100, -76.563700],
-  [-12.529100, -76.564900],
-  [-12.530200, -76.566300],
-  [-12.531100, -76.567700],
-  [-12.532000, -76.569200],
-  [-12.533000, -76.570800],
-  [-12.533500, -76.571900]
+  // === CERRAR POLÍGONO (regreso al punto 1)
+  [-12.5300483, -76.5787853]
 ];
 
 
-
-// === Dibujar ZONA DE COBERTURA (diseño premium) ===
+// === PINTAR ÁREA ROJA ===
 const zonaCobertura = L.polygon(zonaCoberturaCoords, {
   color: "#E63946",
   weight: 2,
   fillColor: "#FF6B6B",
-  fillOpacity: 0.35,
-  smoothFactor: 1.5
+  fillOpacity: 0.45,
+  smoothFactor: 2
 }).addTo(map);
 
 
-
-// === Validación SÚPER PRECISA (Turf.js point-in-polygon) ===
+// === VALIDACIÓN PRECISA CON TURF.JS ===
 function checkCoverage(latlng) {
   const pt = turf.point([latlng.lng, latlng.lat]);
-  const poly = turf.polygon([zonaCoberturaCoords.map(c => [c[1], c[0]])]);
+  const poly = turf.polygon([
+    zonaCoberturaCoords.map(c => [c[1], c[0]])
+  ]);
   return turf.booleanPointInPolygon(pt, poly);
 }
+
 
 
 
