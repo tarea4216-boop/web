@@ -154,11 +154,11 @@ map.on('click', function (e) {
 
   coverageMsg.textContent = '✅ Dentro de cobertura.';
   showToast("✅ Ubicación válida", "success");
-});
 
-
-    // FORMULARIO DE DATOS
-    qrContainer.innerHTML = `
+  // -----------------------------
+  // FORMULARIO DE DATOS (DEBE ESTAR AQUÍ)
+  // -----------------------------
+  qrContainer.innerHTML = `
       <h4>Datos para la entrega</h4>
       <div style="display:flex;flex-direction:column;gap:10px;max-width:400px;">
         <input type="text" id="cliente-nombre" placeholder="👤 Nombre completo" class="input">
@@ -168,55 +168,57 @@ map.on('click', function (e) {
       </div>
     `;
 
-    qrContainer.dataset.lat = selectedLatLng.lat;
-    qrContainer.dataset.lng = selectedLatLng.lng;
-    qrContainer.dataset.total = total;
-    qrContainer.dataset.uid = currentUser.uid;
-    qrContainer.dataset.pedidoId = `pedido-${Date.now()}`;
+  qrContainer.dataset.lat = selectedLatLng.lat;
+  qrContainer.dataset.lng = selectedLatLng.lng;
+  qrContainer.dataset.total = total;
+  qrContainer.dataset.uid = currentUser.uid;
+  qrContainer.dataset.pedidoId = `pedido-${Date.now()}`;
 
-    // CONTINUAR AL PAGO
-    document.getElementById('continuar-pago').onclick = () => {
-      const nombre = document.getElementById('cliente-nombre').value.trim();
-      const celular = document.getElementById('cliente-celular').value.trim();
-      const referencia = document.getElementById('cliente-referencia').value.trim();
+  // -----------------------------
+  // CONTINUAR AL PAGO
+  // -----------------------------
+  document.getElementById('continuar-pago').onclick = () => {
+    const nombre = document.getElementById('cliente-nombre').value.trim();
+    const celular = document.getElementById('cliente-celular').value.trim();
+    const referencia = document.getElementById('cliente-referencia').value.trim();
 
-      if (!nombre || !celular) {
-        showToast("⚠️ Ingresa tu nombre y número de celular.", "error");
-        return;
-      }
+    if (!nombre || !celular) {
+      showToast("⚠️ Ingresa tu nombre y número de celular.", "error");
+      return;
+    }
 
-      const cartWithComments = cart.map((it, index) => {
-        const textarea = document.getElementById(`comentario-${index}`);
-        return { ...it, comentario: textarea?.value?.trim() || "" };
-      });
+    const cartWithComments = cart.map((it, index) => {
+      const textarea = document.getElementById(`comentario-${index}`);
+      return { ...it, comentario: textarea?.value?.trim() || "" };
+    });
 
-      Object.assign(qrContainer.dataset, {
-        nombre, celular, referencia,
-        cart: JSON.stringify(cartWithComments)
-      });
+    Object.assign(qrContainer.dataset, {
+      nombre, celular, referencia,
+      cart: JSON.stringify(cartWithComments)
+    });
 
-      qrContainer.innerHTML = `
-        <h4>Resumen de tu pedido</h4>
-        <p><b>Cliente:</b> ${nombre}</p>
-        <p><b>Celular:</b> ${celular}</p>
-        <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
-        <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
-        <p style="font-size:0.9rem;">Sube la captura del pago para verificar.</p>
-      `;
+    qrContainer.innerHTML = `
+      <h4>Resumen de tu pedido</h4>
+      <p><b>Cliente:</b> ${nombre}</p>
+      <p><b>Celular:</b> ${celular}</p>
+      <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
+      <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
+      <p style="font-size:0.9rem;">Sube la captura del pago para verificar.</p>
+    `;
 
-      // Cargar verificador
-      const script = document.createElement('script');
-      script.id = "verificadorScript";
-      script.type = "module";
-      script.src = 'assets/pago_verificar.js';
-      document.body.appendChild(script);
+    // Cargar verificador
+    const script = document.createElement('script');
+    script.id = "verificadorScript";
+    script.type = "module";
+    script.src = 'assets/pago_verificar.js';
+    document.body.appendChild(script);
 
-      // Bloquea nuevas ubicaciones
-      pagoBloqueado = true;
-      localStorage.removeItem(STORAGE_KEY);
-    };
+    pagoBloqueado = true;
+    localStorage.removeItem(STORAGE_KEY);
+  };
 
-  });
+}); // 👈 ESTE CIERRE FALTABA ANTES
+
 
 
   // ------------------------------------
