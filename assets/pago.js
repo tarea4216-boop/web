@@ -204,7 +204,7 @@ map.on('click', function (e) {
       <p><b>Celular:</b> ${celular}</p>
       <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
       <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
-      <p style="font-size:0.9rem;">Sube la captura del pago para verificar.</p>
+      <p style="font-size:0.9rem;">Sube la captura del pago para verificar o copia este numeró 986556773</p>
     `;
 
     // Cargar verificador
