@@ -1,5 +1,5 @@
 // === IMPORTACIONES PRINCIPALES ===
-import { fetchAll } from './supabaseClient.js';
+import { supabase, fetchAll } from './supabaseClient.js';
 import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
