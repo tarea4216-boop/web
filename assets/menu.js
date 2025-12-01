@@ -336,6 +336,44 @@ function buildWhatsAppURL(items) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
 }
 
+// === PROMOCIÓN EMERGENTE ===
+async function mostrarPromoPopup() {
+  try {
+    // 🟡 1. Obtener la promoción activa
+    const activa = await fetchAll("promocion_activa", "*", { single: true });
+    if (!activa || !activa.promo_id) return;
+
+    // 🟡 2. Obtener datos de la promoción
+    const promo = await fetchAll("promociones", "*", {
+      filter: { col: "id", op: "eq", val: activa.promo_id },
+      single: true
+    });
+
+    if (!promo) return;
+
+    // 🟡 3. Crear overlay
+    const overlay = document.createElement("div");
+    overlay.className = "promo-popup-overlay";
+
+    overlay.innerHTML = `
+      <div class="promo-popup">
+        <button class="close-popup">✖</button>
+        <h2>${promo.nombre}</h2>
+        ${promo.foto_url ? `<img src="${promo.foto_url}" style="max-width:100%;border-radius:12px">` : ''}
+        <p>Precio: S/ ${promo.precio}</p>
+        <p>${promo.descripcion || ""}</p>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.querySelector(".close-popup").onclick = () => overlay.remove();
+  } catch (e) {
+    console.warn("No se pudo mostrar popup de promoción:", e);
+  }
+}
+
+
 // === FUNCIÓN PRINCIPAL ===
 async function main() {
   try {
@@ -385,6 +423,12 @@ async function main() {
       }
     }, 300);
 
+// 🕒 Mostrar promoción emergente 5 segundos después
+setTimeout(() => {
+  mostrarPromoPopup();
+}, 5000);
+
+    
     renderCart();
     search.addEventListener('input', filterProducts);
     categoria.addEventListener('change', filterProducts);
