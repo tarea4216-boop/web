@@ -339,19 +339,24 @@ function buildWhatsAppURL(items) {
 // === PROMOCIÓN EMERGENTE ===
 async function mostrarPromoPopup() {
   try {
-    // 🟡 1. Obtener la promoción activa
-    const activa = await fetchAll("promocion_activa", "*", { single: true });
-    if (!activa || !activa.promo_id) return;
+    // 1. Obtener promo activa
+    const { data: activa, error: err1 } = await supabase
+      .from("promocion_activa")
+      .select("promo_id")
+      .single();
 
-    // 🟡 2. Obtener datos de la promoción
-    const promo = await fetchAll("promociones", "*", {
-      filter: { col: "id", op: "eq", val: activa.promo_id },
-      single: true
-    });
+    if (err1 || !activa || !activa.promo_id) return;
 
-    if (!promo) return;
+    // 2. Obtener datos de la promo
+    const { data: promo, error: err2 } = await supabase
+      .from("promociones")
+      .select("*")
+      .eq("id", activa.promo_id)
+      .single();
 
-    // 🟡 3. Crear overlay
+    if (err2 || !promo) return;
+
+    // 3. Crear popup
     const overlay = document.createElement("div");
     overlay.className = "promo-popup-overlay";
 
@@ -359,19 +364,25 @@ async function mostrarPromoPopup() {
       <div class="promo-popup">
         <button class="close-popup">✖</button>
         <h2>${promo.nombre}</h2>
-        ${promo.foto_url ? `<img src="${promo.foto_url}" style="max-width:100%;border-radius:12px">` : ''}
-        <p>Precio: S/ ${promo.precio}</p>
-        <p>${promo.descripcion || ""}</p>
+        ${promo.foto_url ? `<img src="${promo.foto_url}" class="promo-img">` : ''}
+        <p class="promo-precio">S/ ${promo.precio}</p>
+        <p class="promo-desc">${promo.descripcion || ""}</p>
       </div>
     `;
 
     document.body.appendChild(overlay);
 
-    overlay.querySelector(".close-popup").onclick = () => overlay.remove();
+    // Cerrar popup
+    overlay.querySelector(".close-popup").onclick = () => {
+      overlay.classList.add("closing");
+      setTimeout(() => overlay.remove(), 300);
+    };
+
   } catch (e) {
-    console.warn("No se pudo mostrar popup de promoción:", e);
+    console.warn("No se pudo mostrar el popup:", e);
   }
 }
+
 
 
 // === FUNCIÓN PRINCIPAL ===
