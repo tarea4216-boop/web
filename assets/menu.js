@@ -4,7 +4,26 @@ import { mountChrome, initFloatingCart, formatMoney } from './ui.js';
 import { cart, cartTotal } from './cart.js';
 
 // === HORARIO DE ATENCIÓN :D ===
-const HORARIO = { apertura: 9, cierre: 18 };
+let HORARIO = { apertura: 0, cierre: 24 };
+
+async function cargarHorarioAtencion() {
+  const { data, error } = await supabase
+    .from("horario_atencion")
+    .select("*")
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Error cargando horario:", error);
+    return;
+  }
+
+  if (data) {
+    HORARIO.apertura = data.apertura;
+    HORARIO.cierre = data.cierre;
+  }
+}
+
 let FUERA_DE_HORARIO = false;
 
 // === FUNCIONES DE HORARIO ===
@@ -53,7 +72,10 @@ function deshabilitarFueraHorario() {
       <div class="bloqueo-contenido">
         <div class="icono">🍽️</div>
         <h2>Estamos cerrados por ahora</h2>
-        <p>Horario de atención:<br><strong>9:00 a.m. - 6:00 p.m.</strong></p>
+      <p>
+  Horario de atención:<br>
+  <strong>${HORARIO.apertura}:00 - ${HORARIO.cierre}:00</strong>
+</p>
       </div>
     `;
 
@@ -388,6 +410,9 @@ async function mostrarPromoPopup() {
 // === FUNCIÓN PRINCIPAL ===
 async function main() {
   try {
+    // ⬅️ CARGAR HORARIO PRIMERO
+    await cargarHorarioAtencion();
+
     await mountChrome();
     initFloatingCart();
 
@@ -424,15 +449,17 @@ async function main() {
     window.PRODUCTS = PRODUCTS;
     window.cart = cart;
 
-    renderProducts(PRODUCTS);
+   renderProducts(PRODUCTS);
 
-    setTimeout(() => {
-      const abierto = estaDentroDelHorario();
-      if (!abierto) {
-        mostrarAvisoFueraHorario();
-        deshabilitarFueraHorario();
-      }
-    }, 300);
+// ⏱️ Aplicar estado inicial según horario
+if (estaDentroDelHorario()) {
+  habilitarSiAbierto();
+} else {
+  mostrarAvisoFueraHorario();
+  deshabilitarFueraHorario();
+}
+
+
 
 // 🕒 Mostrar promoción emergente 5 segundos después
 setTimeout(() => {
