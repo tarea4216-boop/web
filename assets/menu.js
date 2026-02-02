@@ -9,19 +9,27 @@ let HORARIO = { apertura: 0, cierre: 24 };
 async function cargarHorarioAtencion() {
   const { data, error } = await supabase
     .from("horario_atencion")
-    .select("*")
+    .select("apertura, cierre")
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (error) {
+  // ⚠️ Error real (red, permisos, etc.)
+  if (error && error.code !== "PGRST116") {
     console.error("Error cargando horario:", error);
     return;
   }
 
-  if (data) {
-    HORARIO.apertura = data.apertura;
-    HORARIO.cierre = data.cierre;
+  // 🟡 No hay horario configurado aún
+  if (!data) {
+    console.warn("⏰ No hay horario configurado, usando horario por defecto");
+    HORARIO.apertura = 0;
+    HORARIO.cierre = 24;
+    return;
   }
+
+  // ✅ Horario válido
+  HORARIO.apertura = data.apertura;
+  HORARIO.cierre = data.cierre;
 }
 
 let FUERA_DE_HORARIO = false;
