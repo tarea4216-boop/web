@@ -142,9 +142,13 @@ if (addToCartBtn) {
 }
 
 // ==============================
-// INIT
+// INIT (esperar Supabase)
 // ==============================
 document.addEventListener("DOMContentLoaded", () => {
-  // Esperar un poco por Supabase
-  setTimeout(cargarHorarioAtencion, 300);
+  const esperarSupabase = setInterval(() => {
+    if (typeof supabase !== "undefined") {
+      clearInterval(esperarSupabase);
+      cargarHorarioAtencion();
+    }
+  }, 100);
 });
