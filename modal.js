@@ -1,3 +1,7 @@
+// ==============================
+// MODAL DE PRODUCTO (CON HORARIO)
+// ==============================
+
 // === REFERENCIAS DEL MODAL ===
 const modal = document.getElementById("productModal");
 const modalImage = document.getElementById("modalImage");
@@ -8,26 +12,65 @@ const addToCartBtn = document.getElementById("addToCartBtn");
 
 let currentItem = null;
 
-// === HORARIO DE ATENCIÓN ===
-function estaDentroDelHorario() {
-  const ahora = new Date();
-  const hora = ahora.getHours() + ahora.getMinutes() / 60;
-  return hora >= 10 && hora < 18;
+// ==============================
+// HORARIO DE ATENCIÓN (DESDE BD)
+// ==============================
+let HORARIO = { apertura: 0, cierre: 24 };
+let HORARIO_CARGADO = false;
+
+// Cargar horario desde Supabase
+async function cargarHorarioAtencion() {
+  const { data, error } = await supabase
+    .from("horario_atencion")
+    .select("apertura, cierre")
+    .limit(1)
+    .maybeSingle();
+
+  // Error real
+  if (error && error.code !== "PGRST116") {
+    console.error("Error cargando horario (modal):", error);
+    return;
+  }
+
+  // Si no hay horario configurado → libre
+  if (!data) {
+    HORARIO = { apertura: 0, cierre: 24 };
+    HORARIO_CARGADO = true;
+    return;
+  }
+
+  HORARIO.apertura = data.apertura;
+  HORARIO.cierre = data.cierre;
+  HORARIO_CARGADO = true;
 }
 
-// === ABRIR MODAL ===
+// Verificar si está dentro del horario
+function estaDentroDelHorario() {
+  if (!HORARIO_CARGADO) return false;
+
+  const ahora = new Date();
+  const hora = ahora.getHours() + ahora.getMinutes() / 60;
+
+  return hora >= HORARIO.apertura && hora < HORARIO.cierre;
+}
+
+// ==============================
+// ABRIR MODAL
+// ==============================
 document.addEventListener("click", (e) => {
-  // No abrir si clic en el botón "Agregar"
+  // No abrir si se hace clic en botón "Agregar"
   const addBtn = e.target.closest("[data-add]");
   if (addBtn) return;
 
-  // Buscar el contenedor de producto
   const item = e.target.closest(".carousel-item");
   if (!item || !modal) return;
 
-  // Evitar abrir fuera del horario
+  // Bloquear fuera de horario
   if (!estaDentroDelHorario()) {
-    showToast("⚠️ Fuera de horario. El restaurante atiende de 10:00 a 18:00.", "error");
+    showToast(
+      `⚠️ Fuera de horario. Atendemos de ${HORARIO.apertura}:00 a ${HORARIO.cierre}:00.`,
+      "error"
+    );
     return;
   }
 
@@ -46,7 +89,9 @@ document.addEventListener("click", (e) => {
   modal.style.display = "flex";
 });
 
-// === CERRAR MODAL ===
+// ==============================
+// CERRAR MODAL
+// ==============================
 if (modal) {
   modal.addEventListener("click", (e) => {
     if (e.target === modal) {
@@ -55,19 +100,29 @@ if (modal) {
   });
 }
 
-// === AGREGAR AL CARRITO ===
+// ==============================
+// AGREGAR AL CARRITO
+// ==============================
 if (addToCartBtn) {
   addToCartBtn.addEventListener("click", () => {
     if (!estaDentroDelHorario()) {
-      showToast("⚠️ El restaurante abre a las 10:00 a.m.", "error");
+      showToast(
+        `⚠️ Fuera de horario. Atendemos de ${HORARIO.apertura}:00 a ${HORARIO.cierre}:00.`,
+        "error"
+      );
       return;
     }
 
     if (!currentItem) return;
-    const id = currentItem.querySelector("[data-add]")?.getAttribute("data-add");
+
+    const id = currentItem
+      .querySelector("[data-add]")
+      ?.getAttribute("data-add");
+
     if (!id) return;
 
     const product = window.PRODUCTS?.find(p => p.id === id);
+
     if (product && window.cart) {
       window.cart.add({
         id: product.id,
@@ -76,13 +131,18 @@ if (addToCartBtn) {
         imagen_url: product.imagen_url,
         qty: 1
       });
+
       window.dispatchEvent(new Event("cart:change"));
 
-      // ✨ Animación o efecto opcional (si existe)
+      // Animación opcional
       try {
-        document.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } }));
+        document.dispatchEvent(
+          new CustomEvent("itemAdded", { detail: { img: modalImage } })
+        );
       } catch {
-        window.dispatchEvent(new CustomEvent('itemAdded', { detail: { img: modalImage } }));
+        window.dispatchEvent(
+          new CustomEvent("itemAdded", { detail: { img: modalImage } })
+        );
       }
 
       showToast(`🛒 ${product.nombre} agregado al carrito`, "success");
@@ -93,3 +153,10 @@ if (addToCartBtn) {
     modal.style.display = "none";
   });
 }
+
+// ==============================
+// INIT
+// ==============================
+document.addEventListener("DOMContentLoaded", async () => {
+  await cargarHorarioAtencion();
+});
