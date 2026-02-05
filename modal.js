@@ -2,7 +2,8 @@
 // MODAL DE PRODUCTO (CON HORARIO)
 // ==============================
 
-import { supabase } from './supabaseClient.js';
+import { supabase } from './assets/supabaseClient.js';
+
 
 // === REFERENCIAS DEL MODAL ===
 const modal = document.getElementById("productModal");
