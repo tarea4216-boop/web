@@ -71,7 +71,6 @@ window.initPagoVerificar = async function () {
 
     try {
       // === OCR con Tesseract ===
-// === OCR con Tesseract ===
 const result = await Tesseract.recognize(selectedFile, 'spa');
 let text = result.data.text.toLowerCase();
 
@@ -81,49 +80,74 @@ text = text
   .replace(/sl/g, "s")
   .replace(/5\//g, "s/")
   .replace(/\$/g, "s")
-  .replace(/s\s+\/?/g, "s/") 
+  .replace(/s\s+\/?/g, "s/")
   .replace(/\s+/g, " ")
   .trim();
 
 console.log("📝 Texto OCR procesado:", text);
 
-      // ===============================
-// === VERIFICACIÓN DEL DESTINATARIO ===
+// ===============================
+// === VERIFICACIÓN DESTINATARIO ROBUSTA (YAPE 2026)
 // ===============================
 
-// Nombre real del destinatario
-const destinatarioReal = "dennys e german l";
-
-// Normalizar texto OCR para evitar tildes y mayúsculas
 const normalizar = (str) =>
   str
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // quitar tildes
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
 const textoNormalizado = normalizar(text);
 
-// Palabras clave que SÍ o SÍ deben aparecer en un voucher real
-const claves = ["denny", "german"];  // tolera variaciones tipo “dennys”, “germán”
+// 🔎 Función simple de similitud básica (tolerante a errores OCR)
+function parecido(a, b) {
+  if (!a || !b) return false;
 
-let coincidencias = 0;
-for (const palabra of claves) {
-  if (textoNormalizado.includes(palabra)) coincidencias++;
+  let errores = 0;
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    if (a[i] !== b[i]) errores++;
+  }
+
+  errores += Math.abs(a.length - b.length);
+
+  // Permitir máximo 30% de error
+  return errores <= Math.floor(b.length * 0.3);
 }
 
-// Verificación final
-if (coincidencias < claves.length) {
+const palabras = textoNormalizado.split(" ");
+
+let encontradoNombre = false;
+let encontradoApellido = false;
+
+for (let palabra of palabras) {
+
+  // 🔹 Validación nombre
+  if (parecido(palabra, "dennys") || parecido(palabra, "denys")) {
+    encontradoNombre = true;
+  }
+
+  // 🔹 Validación apellido (Ger*)
+  if (
+    palabra.length >= 3 &&
+    (
+      palabra.startsWith("ger") ||
+      parecido(palabra.slice(0, 3), "ger")
+    )
+  ) {
+    encontradoApellido = true;
+  }
+}
+
+if (!(encontradoNombre && encontradoApellido)) {
   console.error("⛔ Destinatario incorrecto:", textoNormalizado);
   throw new Error(
-    "El comprobante NO pertenece al destinatario correcto (Dennys E. German L.)."
+    "El comprobante NO pertenece al destinatario correcto (Dennys Ger*)."
   );
 }
 
-console.log("✅ Destinatario verificado correctamente.");
-
+console.log("✅ Destinatario verificado correctamente (modo OCR tolerante).");
 
 // ===============================
 // === DETECCIÓN DE MONTO ========
@@ -477,6 +501,7 @@ Validar pedido: ${adminLink}
 
 // Inicializar automáticamente
 window.initPagoVerificar();
+
 
 
 
