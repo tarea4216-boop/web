@@ -315,118 +315,86 @@ window.initPagoVerificar = async function () {
 
 
 // =========================================================
-// DETECCIÓN DE MONTO YAPE 2026
-// Compatible con:
+// === DETECCIÓN ROBUSTA DE MONTO YAPE
+// =========================================================
+//
+// Soporta:
+//
 // S/1
 // S/ 1
+// S/1.5
 // S/1.50
-// S/ 1.50
-// S/.10
-// S separado en otra línea
-// OCR: sl, si, s|
+// S/.1
+// S/. 1.50
+// S 1
+// S 1.50
+// SI 1        <- OCR puede confundir "/" con "I"
+// SL 1        <- OCR puede confundir "/" con "L"
+// S / 1
+// S / 1.50
+// S|1         <- algunos OCR
+// soles 1
+// soles 1.50
+//
+// También soporta coma decimal:
+//
+// S/1,5
+// S/1,50
+//
 // =========================================================
 
-function detectarMonto(textoOCR, totalEsperado){
+function detectarMonto(texto, totalEsperado = null) {
 
-  let texto = textoOCR
-    .toLowerCase()
-    .replace(/\r/g,"\n")
-    .replace(/[§$]/g,"s")
-    .replace(/\bsl\b/g,"s/")
-    .replace(/\bsi\b/g,"s/")
-    .replace(/\|/g,"/")
-    .replace(/5\//g,"s/")
-    .replace(/\s+/g," ")
+  if (!texto) {
+    return null;
+  }
+
+  // ---------------------------------------------------------
+  // NORMALIZAR TEXTO PARA OCR
+  // ---------------------------------------------------------
+
+  let t = String(texto)
+    .replace(/\r?\n/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 
-  console.log("OCR limpio:", texto);
+  // Errores frecuentes de OCR
+  t = t
+    .replace(/[§$]/g, "S")
+    .replace(/\bsl\b/gi, "S/")
+    .replace(/\bsi\b/gi, "S/")
+    .replace(/\bs\s*\|\s*/gi, "S/")
+    .replace(/\bs\s*\/\s*\.\s*/gi, "S/")
+    .replace(/\bs\s+\/\s*/gi, "S/");
 
-  const candidatos = [];
+  console.log("🔎 Texto utilizado para detectar monto:", t);
+
+  // ---------------------------------------------------------
+  // PATRONES DE MONTO
+  // ---------------------------------------------------------
 
   const patrones = [
 
-    /s\s*\/\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
+    // S/1
+    /(?:^|\s)s\s*\/\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
 
-    /s\s*\/\s*\.\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
+    // S/.1
+    /(?:^|\s)s\s*\/\s*\.\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
 
-    /s\s+([0-9]+(?:[.,][0-9]{1,2})?)/gi,
+    // S 1
+    /(?:^|\s)s\s+([0-9]+(?:[.,][0-9]{1,2})?)(?=\s|$)/gi,
 
-    /s\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi
+    // S.1
+    /(?:^|\s)s\s*\.\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
 
+    // SI 1 / SL 1 / S I 1
+    /(?:^|\s)s\s*[il]\s*([0-9]+(?:[.,][0-9]{1,2})?)(?=\s|$)/gi,
+
+    // soles 1
+    /(?:^|\s)sol(?:es)?\.?\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi
   ];
 
-  patrones.forEach(regex=>{
-
-    let m;
-
-    while((m=regex.exec(texto))!==null){
-
-      const valor=parseFloat(m[1].replace(",","."));
-
-      if(!isNaN(valor) && valor>0 && valor<=1500){
-
-        candidatos.push(valor);
-
-      }
-
-    }
-
-  });
-
-  // -------------------------------------------------
-  // CASO ESPECIAL NUEVO YAPE:
-  // OCR separa S/ y el número.
-  // Ej:
-  // s/
-  // 1
-  // -------------------------------------------------
-
-  if(candidatos.length===0){
-
-    const lineas=textoOCR
-      .toLowerCase()
-      .split(/\n+/)
-      .map(x=>x.trim());
-
-    for(let i=0;i<lineas.length-1;i++){
-
-      const actual=lineas[i];
-
-      const siguiente=lineas[i+1];
-
-      if(/^s\s*\/?$/.test(actual)){
-
-        const num=siguiente.match(/^([0-9]+(?:[.,][0-9]{1,2})?)$/);
-
-        if(num){
-
-          candidatos.push(parseFloat(num[1].replace(",", ".")));
-
-        }
-
-      }
-
-    }
-
-  }
-
-  console.log("Candidatos:", candidatos);
-
-  if(candidatos.length===0){
-
-    return null;
-
-  }
-
-  // Elegir el más cercano al total esperado
-
-  candidatos.sort((a,b)=>
-    Math.abs(a-totalEsperado)-Math.abs(b-totalEsperado)
-  );
-
-  return candidatos[0];
-
-}
+  const candidatos = [];
 
   // ---------------------------------------------------------
   // EXTRAER CANDIDATOS
