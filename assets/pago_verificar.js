@@ -314,55 +314,247 @@ window.initPagoVerificar = async function () {
   }
 
 
-  // =========================================================
-  // === DETECCIÓN DE MONTO
-  // =========================================================
-  //
-  // Acepta:
-  //
-  // S/1
-  // S/ 1
-  // S/1.5
-  // S/1.50
-  // S/.1
-  // S/. 1.50
-  // S 1
-  //
-  // También acepta coma decimal.
-  //
-  // IMPORTANTE:
-  // NO buscamos números sueltos como fallback.
-  // =========================================================
+// =========================================================
+// === DETECCIÓN ROBUSTA DE MONTO YAPE
+// =========================================================
+//
+// Soporta:
+//
+// S/1
+// S/ 1
+// S/1.5
+// S/1.50
+// S/.1
+// S/. 1.50
+// S 1
+// S 1.50
+// SI 1        <- OCR puede confundir "/" con "I"
+// SL 1        <- OCR puede confundir "/" con "L"
+// S / 1
+// S / 1.50
+// S|1         <- algunos OCR
+// soles 1
+// soles 1.50
+//
+// También soporta coma decimal:
+//
+// S/1,5
+// S/1,50
+//
+// =========================================================
 
-  function detectarMonto(texto) {
+function detectarMonto(texto, totalEsperado = null) {
 
-    const regexMonto =
-      /(?:s\s*\/\s*\.?|s\s*\.|soles?)\s*([0-9]+(?:[.,][0-9]{1,2})?)/i;
+  if (!texto) {
+    return null;
+  }
 
-    const match =
-      regexMonto.exec(texto);
+  // ---------------------------------------------------------
+  // NORMALIZAR TEXTO PARA OCR
+  // ---------------------------------------------------------
 
-    if (!match) {
-      return null;
-    }
+  let t = String(texto)
+    .replace(/\r?\n/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
-    let valor =
-      match[1]
+  // Errores frecuentes de OCR
+  t = t
+    .replace(/[§$]/g, "S")
+    .replace(/\bsl\b/gi, "S/")
+    .replace(/\bsi\b/gi, "S/")
+    .replace(/\bs\s*\|\s*/gi, "S/")
+    .replace(/\bs\s*\/\s*\.\s*/gi, "S/")
+    .replace(/\bs\s+\/\s*/gi, "S/");
+
+  console.log("🔎 Texto utilizado para detectar monto:", t);
+
+  // ---------------------------------------------------------
+  // PATRONES DE MONTO
+  // ---------------------------------------------------------
+
+  const patrones = [
+
+    // S/1
+    /(?:^|\s)s\s*\/\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
+
+    // S/.1
+    /(?:^|\s)s\s*\/\s*\.\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
+
+    // S 1
+    /(?:^|\s)s\s+([0-9]+(?:[.,][0-9]{1,2})?)(?=\s|$)/gi,
+
+    // S.1
+    /(?:^|\s)s\s*\.\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
+
+    // SI 1 / SL 1 / S I 1
+    /(?:^|\s)s\s*[il]\s*([0-9]+(?:[.,][0-9]{1,2})?)(?=\s|$)/gi,
+
+    // soles 1
+    /(?:^|\s)sol(?:es)?\.?\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi
+  ];
+
+  const candidatos = [];
+
+  // ---------------------------------------------------------
+  // EXTRAER CANDIDATOS
+  // ---------------------------------------------------------
+
+  for (const regex of patrones) {
+
+    let match;
+
+    while ((match = regex.exec(t)) !== null) {
+
+      let valor = String(match[1])
         .replace(",", ".");
 
-    const monto =
-      parseFloat(valor);
+      const numero = parseFloat(valor);
+
+      if (
+        !isNaN(numero) &&
+        numero > 0 &&
+        numero <= 1500
+      ) {
+
+        candidatos.push({
+          monto: numero,
+          texto: match[0].trim(),
+          indice: match.index
+        });
+
+      }
+    }
+  }
+
+  // ---------------------------------------------------------
+  // ELIMINAR DUPLICADOS
+  // ---------------------------------------------------------
+
+  const unicos = [];
+
+  for (const candidato of candidatos) {
 
     if (
-      isNaN(monto) ||
-      monto <= 0 ||
-      monto > 1500
+      !unicos.some(
+        x => Math.abs(x.monto - candidato.monto) < 0.001
+      )
     ) {
-      return null;
+      unicos.push(candidato);
+    }
+  }
+
+  console.log(
+    "💰 Candidatos de monto encontrados:",
+    unicos
+  );
+
+  // ---------------------------------------------------------
+  // SI ENCONTRAMOS UN MONTO
+  // ---------------------------------------------------------
+
+  if (unicos.length > 0) {
+
+    // Si conocemos el total del pedido,
+    // preferimos el candidato más cercano al total.
+    if (
+      totalEsperado !== null &&
+      !isNaN(totalEsperado) &&
+      totalEsperado > 0
+    ) {
+
+      const ordenados = [...unicos].sort(
+        (a, b) =>
+          Math.abs(a.monto - totalEsperado) -
+          Math.abs(b.monto - totalEsperado)
+      );
+
+      const mejor = ordenados[0];
+
+      console.log(
+        "🎯 Monto seleccionado:",
+        mejor.monto,
+        "| Total esperado:",
+        totalEsperado
+      );
+
+      return mejor.monto;
     }
 
-    return monto;
+    return unicos[0].monto;
   }
+
+  // ---------------------------------------------------------
+  // FALLBACK CONTROLADO
+  // ---------------------------------------------------------
+  //
+  // Si el OCR destruyó completamente "S/",
+  // intentamos encontrar el total esperado.
+  //
+  // NO buscamos cualquier número.
+  // Buscamos específicamente el monto del pedido.
+  //
+  // ---------------------------------------------------------
+
+  if (
+    totalEsperado !== null &&
+    !isNaN(totalEsperado) &&
+    totalEsperado > 0
+  ) {
+
+    const montoEntero =
+      Math.round(totalEsperado);
+
+    const montoTexto =
+      totalEsperado
+        .toFixed(2)
+        .replace(".", "[.,]");
+
+    const regexTotalExacto =
+      new RegExp(
+        `(?:^|\\s)${montoTexto}(?:\\s|$)`,
+        "i"
+      );
+
+    if (regexTotalExacto.test(t)) {
+
+      console.log(
+        "🎯 Monto recuperado mediante total esperado:",
+        totalEsperado
+      );
+
+      return Number(totalEsperado);
+    }
+
+    // Caso entero.
+    if (
+      Number.isInteger(totalEsperado)
+    ) {
+
+      const regexEntero =
+        new RegExp(
+          `(?:^|\\s)${montoEntero}(?:\\s|$)`,
+          "i"
+        );
+
+      if (regexEntero.test(t)) {
+
+        console.log(
+          "🎯 Monto entero recuperado:",
+          totalEsperado
+        );
+
+        return Number(totalEsperado);
+      }
+    }
+  }
+
+  console.warn(
+    "⚠️ No fue posible detectar el monto."
+  );
+
+  return null;
+}
 
 
   // =========================================================
