@@ -176,50 +176,124 @@ map.on('click', function (e) {
   qrContainer.dataset.pedidoId = `pedido-${Date.now()}`;
 
   // -----------------------------
-  // CONTINUAR AL PAGO
-  // -----------------------------
-  document.getElementById('continuar-pago').onclick = () => {
-    const nombre = document.getElementById('cliente-nombre').value.trim();
-    const celular = document.getElementById('cliente-celular').value.trim();
-    const referencia = document.getElementById('cliente-referencia').value.trim();
+// CONTINUAR AL PAGO
+// -----------------------------
+document.getElementById('continuar-pago').onclick = () => {
 
-    if (!nombre || !celular) {
-      showToast("⚠️ Ingresa tu nombre y número de celular.", "error");
-      return;
-    }
+  const nombre =
+    document.getElementById('cliente-nombre').value.trim();
 
-    const cartWithComments = cart.map((it, index) => {
-      const textarea = document.getElementById(`comentario-${index}`);
-      return { ...it, comentario: textarea?.value?.trim() || "" };
-    });
+  const celular =
+    document.getElementById('cliente-celular').value.trim();
 
-    Object.assign(qrContainer.dataset, {
-      nombre, celular, referencia,
-      cart: JSON.stringify(cartWithComments)
-    });
+  const referencia =
+    document.getElementById('cliente-referencia').value.trim();
 
-    qrContainer.innerHTML = `
-      <h4>Resumen de tu pedido</h4>
-      <p><b>Cliente:</b> ${nombre}</p>
-      <p><b>Celular:</b> ${celular}</p>
-      <p><b>Total:</b> S/ ${total.toFixed(2)}</p>
-      <img src="yape.png" alt="QR de Yape" style="max-width:220px;margin-top:10px;">
-      <p style="font-size:0.9rem;">Sube la captura del pago para verificar o copia este numeró 986556773</p>
-    `;
+  if (!nombre || !celular) {
+    showToast(
+      "⚠️ Ingresa tu nombre y número de celular.",
+      "error"
+    );
+    return;
+  }
 
-    // Cargar verificador
-    const script = document.createElement('script');
-    script.id = "verificadorScript";
-    script.type = "module";
-    script.src = 'assets/pago_verificar.js';
-    document.body.appendChild(script);
+  // =====================================================
+  // MOMENTO EN QUE COMIENZA EL PROCESO DE PAGO
+  // =====================================================
 
-    pagoBloqueado = true;
-    localStorage.removeItem(STORAGE_KEY);
-  };
+  const creadoEn = Date.now();
 
-}); // 👈 ESTE CIERRE FALTABA ANTES
+  const cartWithComments = cart.map((it, index) => {
 
+    const textarea =
+      document.getElementById(
+        `comentario-${index}`
+      );
+
+    return {
+      ...it,
+      comentario:
+        textarea?.value?.trim() || ""
+    };
+  });
+
+  Object.assign(qrContainer.dataset, {
+
+    nombre,
+
+    celular,
+
+    referencia,
+
+    cart:
+      JSON.stringify(cartWithComments),
+
+    pedidoId:
+      `pedido-${creadoEn}`,
+
+    creadoEn:
+      String(creadoEn),
+
+    fechaPedido:
+      String(creadoEn),
+
+    total:
+      String(total)
+  });
+
+  qrContainer.innerHTML = `
+    <h4>Resumen de tu pedido</h4>
+
+    <p>
+      <b>Cliente:</b> ${nombre}
+    </p>
+
+    <p>
+      <b>Celular:</b> ${celular}
+    </p>
+
+    <p>
+      <b>Total:</b>
+      S/ ${total.toFixed(2)}
+    </p>
+
+    <img
+      src="yape.png"
+      alt="QR de Yape"
+      style="max-width:220px;margin-top:10px;"
+    >
+
+    <p style="font-size:0.9rem;">
+      Sube la captura del pago para verificar
+      o copia este número:
+      <b>986556773</b>
+    </p>
+  `;
+
+  // =====================================================
+  // CARGAR VERIFICADOR
+  // =====================================================
+
+  const script =
+    document.createElement('script');
+
+  script.id =
+    "verificadorScript";
+
+  script.type =
+    "module";
+
+  script.src =
+    "assets/pago_verificar.js";
+
+  document.body.appendChild(script);
+
+  pagoBloqueado = true;
+
+  localStorage.removeItem(
+    STORAGE_KEY
+  );
+};
 
 
   // ------------------------------------
