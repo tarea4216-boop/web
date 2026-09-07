@@ -315,50 +315,25 @@ window.initPagoVerificar = async function () {
 
 
 // =========================================================
-// === DETECCIÓN ROBUSTA DE MONTO YAPE
-// =========================================================
-//
-// Soporta:
-//
-// S/1
-// S/ 1
-// S/1.5
-// S/1.50
-// S/.1
-// S/. 1.50
-// S 1
-// S 1.50
-// SI 1        <- OCR puede confundir "/" con "I"
-// SL 1        <- OCR puede confundir "/" con "L"
-// S / 1
-// S / 1.50
-// S|1         <- algunos OCR
-// soles 1
-// soles 1.50
-//
-// También soporta coma decimal:
-//
-// S/1,5
-// S/1,50
-//
+// === DETECCIÓN DE MONTO YAPE 2026
+// === OCR principal + OCR especializado de la zona monto
 // =========================================================
 
-function detectarMonto(texto, totalEsperado = null) {
+async function detectarMonto(texto, totalEsperado = null, imagen = null) {
 
-  if (!texto) {
+  if (!texto && !imagen) {
     return null;
   }
 
-  // ---------------------------------------------------------
-  // NORMALIZAR TEXTO PARA OCR
-  // ---------------------------------------------------------
+  // =======================================================
+  // 1. PRIMERA PASADA: TEXTO OCR COMPLETO
+  // =======================================================
 
-  let t = String(texto)
+  let t = String(texto || "")
     .replace(/\r?\n/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  // Errores frecuentes de OCR
   t = t
     .replace(/[§$]/g, "S")
     .replace(/\bsl\b/gi, "S/")
@@ -367,11 +342,12 @@ function detectarMonto(texto, totalEsperado = null) {
     .replace(/\bs\s*\/\s*\.\s*/gi, "S/")
     .replace(/\bs\s+\/\s*/gi, "S/");
 
-  console.log("🔎 Texto utilizado para detectar monto:", t);
+  console.log(
+    "🔎 Texto utilizado para detectar monto:",
+    t
+  );
 
-  // ---------------------------------------------------------
-  // PATRONES DE MONTO
-  // ---------------------------------------------------------
+  const candidatos = [];
 
   const patrones = [
 
@@ -387,18 +363,13 @@ function detectarMonto(texto, totalEsperado = null) {
     // S.1
     /(?:^|\s)s\s*\.\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi,
 
-    // SI 1 / SL 1 / S I 1
+    // SI 1 / SL 1
     /(?:^|\s)s\s*[il]\s*([0-9]+(?:[.,][0-9]{1,2})?)(?=\s|$)/gi,
 
     // soles 1
     /(?:^|\s)sol(?:es)?\.?\s*([0-9]+(?:[.,][0-9]{1,2})?)/gi
+
   ];
-
-  const candidatos = [];
-
-  // ---------------------------------------------------------
-  // EXTRAER CANDIDATOS
-  // ---------------------------------------------------------
 
   for (const regex of patrones) {
 
@@ -406,10 +377,10 @@ function detectarMonto(texto, totalEsperado = null) {
 
     while ((match = regex.exec(t)) !== null) {
 
-      let valor = String(match[1])
-        .replace(",", ".");
-
-      const numero = parseFloat(valor);
+      const numero =
+        parseFloat(
+          String(match[1]).replace(",", ".")
+        );
 
       if (
         !isNaN(numero) &&
@@ -427,9 +398,9 @@ function detectarMonto(texto, totalEsperado = null) {
     }
   }
 
-  // ---------------------------------------------------------
+  // =======================================================
   // ELIMINAR DUPLICADOS
-  // ---------------------------------------------------------
+  // =======================================================
 
   const unicos = [];
 
@@ -437,10 +408,15 @@ function detectarMonto(texto, totalEsperado = null) {
 
     if (
       !unicos.some(
-        x => Math.abs(x.monto - candidato.monto) < 0.001
+        x =>
+          Math.abs(
+            x.monto - candidato.monto
+          ) < 0.001
       )
     ) {
+
       unicos.push(candidato);
+
     }
   }
 
@@ -449,27 +425,31 @@ function detectarMonto(texto, totalEsperado = null) {
     unicos
   );
 
-  // ---------------------------------------------------------
-  // SI ENCONTRAMOS UN MONTO
-  // ---------------------------------------------------------
+  // =======================================================
+  // SI EL OCR PRINCIPAL ENCONTRÓ EL MONTO
+  // =======================================================
 
   if (unicos.length > 0) {
 
-    // Si conocemos el total del pedido,
-    // preferimos el candidato más cercano al total.
     if (
       totalEsperado !== null &&
       !isNaN(totalEsperado) &&
       totalEsperado > 0
     ) {
 
-      const ordenados = [...unicos].sort(
-        (a, b) =>
-          Math.abs(a.monto - totalEsperado) -
-          Math.abs(b.monto - totalEsperado)
-      );
+      const ordenados =
+        [...unicos].sort(
+          (a, b) =>
+            Math.abs(
+              a.monto - totalEsperado
+            ) -
+            Math.abs(
+              b.monto - totalEsperado
+            )
+        );
 
-      const mejor = ordenados[0];
+      const mejor =
+        ordenados[0];
 
       console.log(
         "🎯 Monto seleccionado:",
@@ -484,17 +464,160 @@ function detectarMonto(texto, totalEsperado = null) {
     return unicos[0].monto;
   }
 
-  // ---------------------------------------------------------
-  // FALLBACK CONTROLADO
-  // ---------------------------------------------------------
-  //
-  // Si el OCR destruyó completamente "S/",
-  // intentamos encontrar el total esperado.
-  //
-  // NO buscamos cualquier número.
-  // Buscamos específicamente el monto del pedido.
-  //
-  // ---------------------------------------------------------
+
+  // =======================================================
+  // 2. SEGUNDA PASADA:
+  // OCR EXCLUSIVO DE LA ZONA DEL MONTO
+  // =======================================================
+
+  if (imagen) {
+
+    try {
+
+      console.log(
+        "🔍 OCR principal no encontró monto."
+      );
+
+      console.log(
+        "🔍 Iniciando OCR especializado de zona de monto..."
+      );
+
+
+      // ---------------------------------------------------
+      // Crear imagen temporal
+      // ---------------------------------------------------
+
+      const img =
+        await crearImagenParaOCR(imagen);
+
+
+      if (img) {
+
+        // -------------------------------------------------
+        // OCR SOLO DE NÚMEROS
+        // -------------------------------------------------
+
+        const resultadoMonto =
+          await Tesseract.recognize(
+            img,
+            'spa',
+            {
+              tessedit_pageseg_mode: 7,
+              tessedit_char_whitelist:
+                '0123456789.,'
+            }
+          );
+
+
+        const textoMonto =
+          resultadoMonto.data.text || "";
+
+
+        console.log(
+          "💵 OCR ZONA MONTO:",
+          textoMonto
+        );
+
+
+        // -------------------------------------------------
+        // Buscar números
+        // -------------------------------------------------
+
+        const numeros =
+          textoMonto.match(
+            /\d+(?:[.,]\d{1,2})?/g
+          ) || [];
+
+
+        console.log(
+          "🔢 Números encontrados en zona monto:",
+          numeros
+        );
+
+
+        const valores =
+          numeros
+            .map(
+              n =>
+                parseFloat(
+                  n.replace(",", ".")
+                )
+            )
+            .filter(
+              n =>
+                !isNaN(n) &&
+                n > 0 &&
+                n <= 1500
+            );
+
+
+        console.log(
+          "💰 Valores candidatos zona monto:",
+          valores
+        );
+
+
+        // -------------------------------------------------
+        // Si conocemos el total,
+        // buscar el valor más cercano
+        // -------------------------------------------------
+
+        if (
+          valores.length > 0 &&
+          totalEsperado !== null &&
+          !isNaN(totalEsperado)
+        ) {
+
+          valores.sort(
+            (a, b) =>
+              Math.abs(
+                a - totalEsperado
+              ) -
+              Math.abs(
+                b - totalEsperado
+              )
+          );
+
+
+          const mejor =
+            valores[0];
+
+
+          console.log(
+            "🎯 Monto recuperado mediante OCR especializado:",
+            mejor,
+            "| Total esperado:",
+            totalEsperado
+          );
+
+
+          return mejor;
+        }
+
+
+        if (valores.length > 0) {
+
+          return valores[0];
+
+        }
+
+      }
+
+    } catch (errorOCRMonto) {
+
+      console.error(
+        "❌ Error en OCR especializado del monto:",
+        errorOCRMonto
+      );
+
+    }
+
+  }
+
+
+  // =======================================================
+  // 3. FALLBACK FINAL
+  // =======================================================
 
   if (
     totalEsperado !== null &&
@@ -502,21 +625,17 @@ function detectarMonto(texto, totalEsperado = null) {
     totalEsperado > 0
   ) {
 
-    const montoEntero =
+    const entero =
       Math.round(totalEsperado);
 
-    const montoTexto =
-      totalEsperado
-        .toFixed(2)
-        .replace(".", "[.,]");
 
-    const regexTotalExacto =
+    const regexEntero =
       new RegExp(
-        `(?:^|\\s)${montoTexto}(?:\\s|$)`,
-        "i"
+        `(?:^|\\s)${entero}(?:\\s|$)`
       );
 
-    if (regexTotalExacto.test(t)) {
+
+    if (regexEntero.test(t)) {
 
       console.log(
         "🎯 Monto recuperado mediante total esperado:",
@@ -524,38 +643,225 @@ function detectarMonto(texto, totalEsperado = null) {
       );
 
       return Number(totalEsperado);
+
     }
 
-    // Caso entero.
-    if (
-      Number.isInteger(totalEsperado)
-    ) {
-
-      const regexEntero =
-        new RegExp(
-          `(?:^|\\s)${montoEntero}(?:\\s|$)`,
-          "i"
-        );
-
-      if (regexEntero.test(t)) {
-
-        console.log(
-          "🎯 Monto entero recuperado:",
-          totalEsperado
-        );
-
-        return Number(totalEsperado);
-      }
-    }
   }
+
 
   console.warn(
     "⚠️ No fue posible detectar el monto."
   );
 
+
   return null;
+
 }
 
+
+// =========================================================
+// === PREPARAR IMAGEN PARA OCR DEL MONTO
+// =========================================================
+
+async function crearImagenParaOCR(imagen) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const img =
+        new Image();
+
+
+      img.onload = () => {
+
+        try {
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+
+          const ctx =
+            canvas.getContext(
+              "2d"
+            );
+
+
+          const ancho =
+            img.naturalWidth ||
+            img.width;
+
+
+          const alto =
+            img.naturalHeight ||
+            img.height;
+
+
+          console.log(
+            "🖼️ Dimensiones comprobante:",
+            ancho,
+            "x",
+            alto
+          );
+
+
+          // =================================================
+          // ZONA DEL MONTO EN YAPE 2026
+          //
+          // Para una captura vertical:
+          //
+          // X: 8%  → 94%
+          // Y: 29% → 39%
+          //
+          // Esto evita que el OCR tenga que analizar
+          // todo el comprobante.
+          // =================================================
+
+          const x =
+            Math.round(
+              ancho * 0.08
+            );
+
+
+          const y =
+            Math.round(
+              alto * 0.29
+            );
+
+
+          const w =
+            Math.round(
+              ancho * 0.86
+            );
+
+
+          const h =
+            Math.round(
+              alto * 0.10
+            );
+
+
+          // Escalar 3 veces
+          const escala = 3;
+
+
+          canvas.width =
+            w * escala;
+
+
+          canvas.height =
+            h * escala;
+
+
+          ctx.drawImage(
+            img,
+            x,
+            y,
+            w,
+            h,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
+
+
+          // =================================================
+          // ESCALA DE GRISES
+          // =================================================
+
+          const datos =
+            ctx.getImageData(
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+
+
+          for (
+            let i = 0;
+            i < datos.data.length;
+            i += 4
+          ) {
+
+            const r =
+              datos.data[i];
+
+            const g =
+              datos.data[i + 1];
+
+            const b =
+              datos.data[i + 2];
+
+
+            const gris =
+              Math.round(
+                0.299 * r +
+                0.587 * g +
+                0.114 * b
+              );
+
+
+            datos.data[i] =
+              gris;
+
+            datos.data[i + 1] =
+              gris;
+
+            datos.data[i + 2] =
+              gris;
+
+          }
+
+
+          ctx.putImageData(
+            datos,
+            0,
+            0
+          );
+
+
+          resolve(
+            canvas
+          );
+
+
+        } catch (error) {
+
+          reject(error);
+
+        }
+
+      };
+
+
+      img.onerror =
+        reject;
+
+
+      if (
+        imagen instanceof File ||
+        imagen instanceof Blob
+      ) {
+
+        img.src =
+          URL.createObjectURL(
+            imagen
+          );
+
+      } else {
+
+        img.src =
+          imagen;
+
+      }
+
+    }
+  );
+
+}
 
   // =========================================================
   // === PERSONAJES HISTÓRICOS DE YAPE
@@ -1189,8 +1495,12 @@ text =
         // === 2. MONTO
         // ===================================================
 
-       const montoPagado =
-  detectarMonto(text, totalPedido);
+  const montoPagado =
+  await detectarMonto(
+    text,
+    totalPedido,
+    selectedFile
+  );
 
 
         if (!montoPagado) {
