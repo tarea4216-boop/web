@@ -1109,22 +1109,27 @@ function detectarMonto(texto, totalEsperado = null) {
         // ===================================================
         // === LIMPIEZA OCR
         // ===================================================
-
-        text =
-          text
-
-            // Errores comunes del OCR
-            .replace(/§/g, "S")
-            .replace(/\$/g, "S")
-            .replace(/\bsl\b/gi, "S")
-            .replace(/5\//g, "S/")
-            .replace(/S\s*\/\s*\./gi, "S/")
-
-            // Espacios
-            .replace(/\r?\n/g, " ")
-            .replace(/\s+/g, " ")
-
-            .trim();
+text =
+  text
+    // Errores comunes
+    .replace(/§/g, "S")
+    .replace(/\$/g, "S")
+    .replace(/5\//g, "S/")
+    .replace(/\bsl\b/gi, "S/")
+    .replace(/\bsi\b/gi, "S/")
+    
+    // Variaciones del símbolo S/
+    .replace(/S\s*\/\s*\./gi, "S/")
+    .replace(/S\s+\/\s*/gi, "S/")
+    .replace(/S\s*\|\s*/gi, "S/")
+    
+    // Saltos de línea
+    .replace(/\r?\n/g, " ")
+    
+    // Espacios múltiples
+    .replace(/\s+/g, " ")
+    
+    .trim();
 
 
         console.log(
@@ -1184,8 +1189,8 @@ function detectarMonto(texto, totalEsperado = null) {
         // === 2. MONTO
         // ===================================================
 
-        const montoPagado =
-          detectarMonto(text);
+       const montoPagado =
+  detectarMonto(text, totalPedido);
 
 
         if (!montoPagado) {
