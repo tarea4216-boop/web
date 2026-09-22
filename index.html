@@ -3,115 +3,819 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inicio | El Camarón de Oro</title>
+  <meta name="theme-color" content="#17140f" />
 
-  <!-- Estilos principales -->
-  <link rel="stylesheet" href="assets/styles.css" />
-  <link rel="stylesheet" href="assets/index.css" />
+  <meta
+    name="description"
+    content="El Camarón de Oro: gastronomía campestre, sabores que conquistan y momentos para compartir."
+  />
 
-  <!-- Swiper CSS -->
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <title>El Camarón de Oro | Una experiencia de sabor</title>
 
-  <!-- Tipografía -->
+  <!-- Tipografías -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Sistema de notificaciones -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- CSS global del sitio -->
+  <link rel="stylesheet" href="assets/styles.css" />
+
+  <!-- Librerías -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+  />
+
   <link rel="stylesheet" href="assets/toast/toast.css" />
+
+  <!-- CSS exclusivo del inicio: SIEMPRE AL FINAL -->
+  <link rel="stylesheet" href="assets/index.css" />
 </head>
 
-<body class="preload">
-  <!-- ENCABEZADO GLASS -->
-  <header class="header glass-header">
-    <div class="container nav-container">
-      <div class="brand">
-        <img src="https://i.ibb.co/dKnPMDb/camaron-logo.png" alt="Logo El Camarón de Oro" />
-        <div>
-          <h3>El Camarón de Oro</h3>
-          <small>Gastronomía campestre</small>
+<body class="preload home-page">
+
+  <!-- Barra de progreso -->
+  <div
+    class="reading-progress"
+    id="readingProgress"
+    aria-hidden="true"
+  ></div>
+
+  <!-- ================= HEADER ================= -->
+
+<header class="header glass-header home-header">
+  <div class="container nav-container">
+
+    <a
+      class="brand home-brand"
+      href="index.html"
+      aria-label="El Camarón de Oro, inicio"
+    >
+      <img
+        alt="Logo El Camarón de Oro"
+        loading="eager"
+      />
+
+      <span class="brand-copy">
+        <strong>El Camarón de Oro</strong>
+        <small>Gastronomía campestre</small>
+      </span>
+    </a>
+
+    <button
+      class="mobile-menu-toggle"
+      id="mobileMenuToggle"
+      type="button"
+      aria-label="Abrir menú de navegación"
+      aria-expanded="false"
+      aria-controls="homeNavigation"
+    >
+      <span></span>
+      <span></span>
+    </button>
+
+    <nav
+      class="nav-links"
+      id="homeNavigation"
+      aria-label="Navegación principal"
+    >
+      <a href="index.html" class="active" aria-current="page">
+        Inicio
+      </a>
+      <a href="menu.html">Menú</a>
+      <a href="promos.html">Promociones</a>
+      <a href="contacto.html">Contacto</a>
+      <a href="menu.html" class="nav-cta">
+        Explorar carta <span>↗</span>
+      </a>
+    </nav>
+
+  </div>
+</header>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+
+    <section class="hero home-hero" id="inicio">
+
+      <div class="hero-background" aria-hidden="true"></div>
+      <div class="hero-grain" aria-hidden="true"></div>
+
+      <div class="hero-content container">
+
+        <!-- Texto principal -->
+        <div class="hero-text">
+
+          <div class="hero-eyebrow">
+            <span class="eyebrow-line"></span>
+            <span>EL ARTE DE DISFRUTAR</span>
+            <span class="eyebrow-line"></span>
+          </div>
+
+          <p class="hero-pretitle">
+            GASTRONOMÍA CAMPESTRE · DESDE HACE 15 AÑOS
+          </p>
+
+          <h1>
+            Hay sabores<br />
+            que se sienten.<br />
+            <em>
+              Y momentos<br />
+              que perduran.
+            </em>
+          </h1>
+
+          <p class="hero-description">
+            En <strong>El Camarón de Oro</strong> cada encuentro
+            tiene algo especial. Tradición, calidez y una cocina
+            pensada para disfrutar sin apuros.
+          </p>
+
+          <div class="hero-buttons">
+
+            <a
+              href="menu.html"
+              class="btn primary large home-cta"
+            >
+              Descubrir el menú
+              <span class="button-arrow">↗</span>
+            </a>
+
+            <a
+              href="#destacados"
+              class="btn ghost large home-secondary"
+            >
+              <span class="play-icon">↓</span>
+              Conoce nuestros favoritos
+            </a>
+
+          </div>
+
+          <div class="hero-signature">
+            <span class="signature-line"></span>
+            <span>Una mesa. Muchas historias.</span>
+          </div>
+
         </div>
+
+        <!-- Fotografía protagonista -->
+
+<div class="hero-visual">
+  <div class="hero-image-frame">
+    <img
+      src="https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=85&w=1500&auto=format&fit=crop"
+      alt="Una presentación gastronómica para disfrutar y compartir"
+      fetchpriority="high"
+    />
+
+    <div class="hero-image-overlay"></div>
+
+    <div class="hero-image-label">
+      <span>EL PLACER DE</span>
+      <strong>COMPARTIR</strong>
+    </div>
+
+    <!-- Sello 15 años: ahora dentro de la imagen -->
+    <div class="experience-seal">
+      <svg viewBox="0 0 120 120" aria-hidden="true">
+        <defs>
+          <path
+            id="sealCircle"
+            d="M60,60 m-43,0 a43,43 0 1,1 86,0 a43,43 0 1,1 -86,0"
+          />
+        </defs>
+
+        <circle
+          cx="60"
+          cy="60"
+          r="55"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1"
+        />
+
+        <text>
+          <textPath href="#sealCircle">
+            SABOR · TRADICIÓN · EXPERIENCIA ·
+          </textPath>
+        </text>
+      </svg>
+
+      <div class="seal-center">
+        <strong>15</strong>
+        <span>AÑOS</span>
       </div>
-      <nav class="nav-links">
-        <a href="index.html" class="active">Inicio</a>
+    </div>
+  </div>
+
+  <!-- Nota decorativa -->
+  <div class="hero-floating-note">
+    <span class="floating-note-icon">✳</span>
+    <div>
+      <strong>Hecho para disfrutar</strong>
+      <small>Un sabor que invita a volver</small>
+    </div>
+  </div>
+      </div>
+
+      <div class="hero-footer container">
+        <span>BUENA MESA · BUENOS MOMENTOS</span>
+
+        <a href="#destacados">
+          DESLIZA PARA DESCUBRIR
+          <span>↓</span>
+        </a>
+      </div>
+
+    </section>
+
+    <!-- ================= CINTA ================= -->
+
+    <div
+      class="home-marquee"
+      aria-label="Sabor, tradición y momentos para compartir"
+    >
+      <div class="marquee-track">
+        <span>SABORES QUE CONQUISTAN</span>
+        <i>✳</i>
+        <span>TRADICIÓN QUE PERDURA</span>
+        <i>✳</i>
+        <span>MOMENTOS PARA COMPARTIR</span>
+        <i>✳</i>
+        <span>SABORES QUE CONQUISTAN</span>
+        <i>✳</i>
+        <span>TRADICIÓN QUE PERDURA</span>
+        <i>✳</i>
+      </div>
+    </div>
+
+    <!-- ================= CONTENIDO PRINCIPAL ================= -->
+
+    <div class="container home-main">
+
+      <!-- ================= DESTACADOS ================= -->
+
+      <section
+        class="section home-section"
+        id="destacados"
+      >
+
+        <div class="section-heading">
+
+          <div class="section-heading-copy">
+
+            <span class="section-kicker">
+              <span>01</span> · DE NUESTRA COCINA
+            </span>
+
+            <h2>
+              Los favoritos<br />
+              <em>de la casa.</em>
+            </h2>
+
+          </div>
+
+          <div class="section-heading-side">
+
+            <p>
+              Cada plato tiene su propia historia.
+              Descubre los sabores que nuestros visitantes
+              vuelven a elegir.
+            </p>
+
+            <a href="menu.html" class="section-link">
+              Explorar carta <span>↗</span>
+            </a>
+
+          </div>
+
+        </div>
+
+        <!-- Supabase inserta los productos -->
+        <div
+          class="grid cols-3 home-grid"
+          id="destGrid"
+          aria-live="polite"
+        ></div>
+
+      </section>
+
+      <!-- ================= MANIFIESTO ================= -->
+
+      <section class="home-manifesto">
+
+        <div class="manifesto-image">
+
+          <img
+            src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=85&w=1200&auto=format&fit=crop"
+            alt="Mesa preparada en un ambiente cálido y acogedor"
+            loading="lazy"
+          />
+
+          <span class="manifesto-image-caption">
+            EL GUSTO DE SENTARSE A LA MESA
+          </span>
+
+        </div>
+
+        <div class="manifesto-copy">
+
+          <span class="section-kicker">
+            NUESTRA ESENCIA
+          </span>
+
+          <h2>
+            La mejor parte<br />
+            de la vida sucede<br />
+            <em>alrededor de una mesa.</em>
+          </h2>
+
+          <p>
+            Los encuentros, las conversaciones y esos pequeños
+            momentos que se convierten en recuerdos.
+            Queremos que cada visita tenga ese sabor especial.
+          </p>
+
+          <a href="contacto.html" class="manifesto-link">
+            Ven a conocernos <span>↗</span>
+          </a>
+
+          <div
+            class="manifesto-decoration"
+            aria-hidden="true"
+          >
+            ✳
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ================= PROMOCIONES ================= -->
+
+      <section
+        class="section home-section"
+        id="promos"
+      >
+
+        <div class="promo-intro">
+
+          <div>
+
+            <span class="section-kicker">
+              <span>02</span> · OCASIONES ESPECIALES
+            </span>
+
+            <h2>
+              Un gusto extra<br />
+              <em>para compartir.</em>
+            </h2>
+
+          </div>
+
+          <p>
+            Hay días que merecen algo diferente.
+            Descubre nuestras promociones y encuentra
+            una nueva razón para disfrutar.
+          </p>
+
+        </div>
+
+        <!-- Supabase inserta las promociones -->
+        <div
+          class="grid cols-3 home-grid"
+          id="promoGrid"
+          aria-live="polite"
+        ></div>
+
+        <div class="promo-bottom-link">
+
+          <a
+            href="promos.html"
+            class="btn primary home-cta"
+          >
+            Descubrir todas las promociones
+            <span>↗</span>
+          </a>
+
+        </div>
+
+      </section>
+
+      <!-- ================= EXPERIENCIA ================= -->
+
+      <section class="home-experience">
+
+        <div class="experience-background"></div>
+
+        <div class="experience-content">
+
+          <span class="section-kicker">
+            EL MOMENTO ES AHORA
+          </span>
+
+          <h2>
+            Tu próxima<br />
+            historia comienza<br />
+            <em>con un buen sabor.</em>
+          </h2>
+
+          <p>
+            Explora nuestra carta y encuentra
+            algo que te haga volver.
+          </p>
+
+          <a
+            href="menu.html"
+            class="btn primary large home-cta"
+          >
+            Encuentra tu favorito <span>↗</span>
+          </a>
+
+        </div>
+
+        <div
+          class="experience-symbol"
+          aria-hidden="true"
+        >
+          ✳
+        </div>
+
+      </section>
+
+      <!-- ================= TESTIMONIOS ================= -->
+
+      <section
+        class="section home-testimonials"
+        id="testimonios"
+      >
+
+        <div class="testimonial-heading">
+
+          <span class="section-kicker">
+            <span>03</span> · VOCES DE NUESTRA MESA
+          </span>
+
+          <h2>
+            Lo que queda<br />
+            <em>en el recuerdo.</em>
+          </h2>
+
+          <p>
+            Cada visita es parte de nuestra historia.
+            Estas son algunas de las experiencias
+            que nuestros visitantes han compartido.
+          </p>
+
+        </div>
+
+        <!-- Supabase inserta los testimonios -->
+        <div
+          class="grid cols-2 home-grid testimonial-grid"
+          id="testiGrid"
+          aria-live="polite"
+        ></div>
+
+      </section>
+
+      <!-- ================= CTA FINAL ================= -->
+
+      <section class="home-final-cta">
+
+        <div class="final-cta-content">
+
+          <span class="section-kicker">
+            EL CAMARÓN DE ORO
+          </span>
+
+          <h2>
+            Nos vemos<br />
+            <em>alrededor de la mesa.</em>
+          </h2>
+
+          <p>
+            Ven por el sabor. Quédate por el momento.
+          </p>
+
+          <div class="final-cta-buttons">
+
+            <a
+              href="menu.html"
+              class="btn primary large home-cta"
+            >
+              Ver menú <span>↗</span>
+            </a>
+
+            <a
+              href="contacto.html"
+              class="btn ghost large home-secondary"
+            >
+              Cómo encontrarnos
+            </a>
+
+          </div>
+
+        </div>
+
+        <div
+          class="final-cta-decoration"
+          aria-hidden="true"
+        >
+          <span>BUEN SABOR</span>
+          <span>BUENA COMPAÑÍA</span>
+          <span>BUENOS RECUERDOS</span>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="footer home-footer">
+
+    <div class="container footer-inner">
+
+      <a class="footer-brand" href="index.html">
+
+        <img
+          src="https://i.ibb.co/dKnPMDb/camaron-logo.png"
+          alt=""
+        />
+
+        <span>
+          El Camarón de Oro
+          <small>Gastronomía campestre</small>
+        </span>
+
+      </a>
+
+      <p>
+        Sabores que conquistan.<br />
+        Tradición que perdura.
+      </p>
+
+      <div class="footer-navigation">
+        <a href="index.html">Inicio</a>
         <a href="menu.html">Menú</a>
         <a href="promos.html">Promociones</a>
         <a href="contacto.html">Contacto</a>
-      </nav>
-    </div>
-  </header>
-
-  <!-- HERO PRINCIPAL -->
-  <section class="hero">
-    <div class="hero-overlay"></div>
-    <div class="hero-content container">
-      <div class="hero-text">
-        <h1>Sabores que conquistan, tradición que perdura</h1>
-        <p>
-          En <strong>El Camarón de Oro</strong> fusionamos lo mejor de la gastronomía campestre con 15 años de experiencia culinaria.
-        </p>
-        <div class="hero-buttons">
-          <a class="btn primary large" href="menu.html">Ver Menú</a>
-          <a class="btn ghost large" href="promos.html">Ver Promociones</a>
-        </div>
       </div>
-      <div class="hero-image">
-        <img src="https://images.unsplash.com/photo-1603133872878-684f208fb84b?q=80&w=1200&auto=format&fit=crop"
-             alt="Plato gourmet de camarones" />
-      </div>
+
+      <small class="footer-copyright">
+        © 2025 El Camarón de Oro. Todos los derechos reservados.
+      </small>
+
     </div>
-  </section>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="container">
-    <!-- 🦐 Productos destacados -->
-    <section class="section" id="destacados">
-      <h2>Platos destacados</h2>
-      <div class="grid cols-3" id="destGrid"></div>
-    </section>
-
-    <!-- 🎁 Promociones -->
-    <section class="section" id="promos">
-      <h2>Promociones</h2>
-      <div class="grid cols-3" id="promoGrid"></div>
-    </section>
-
-    <!-- ⭐ Testimonios -->
-    <section class="section" id="testimonios">
-      <h2>Testimonios</h2>
-      <div class="grid cols-2" id="testiGrid"></div>
-    </section>
-  </main>
-
-  <!-- PIE DE PÁGINA -->
-  <footer class="footer">
-    <p>© 2025 El Camarón de Oro. Todos los derechos reservados.</p>
   </footer>
 
-  <!-- CONTENEDOR DE NOTIFICACIONES -->
-  <div id="toastContainer" class="toast-container"></div>
+  <!-- Volver arriba -->
+  <button
+    class="back-to-top"
+    id="backToTop"
+    type="button"
+    aria-label="Volver al inicio"
+  >
+    ↑
+  </button>
 
-  <!-- LIBRERÍAS -->
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
-  <script src="assets/toast/toast.js" defer></script>
+  <!-- Notificaciones -->
+  <div
+    id="toastContainer"
+    class="toast-container"
+  ></div>
 
-  <!-- SCRIPT PRINCIPAL (Módulo) -->
-  <script type="module" src="assets/index.js"></script>
+  <!-- ================= LIBRERÍAS ================= -->
 
-  <!-- ANIMACIONES Y CABECERA -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"
+    defer
+  ></script>
+
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    defer
+  ></script>
+
+  <script
+    src="assets/toast/toast.js"
+    defer
+  ></script>
+
+  <!-- JavaScript de la página -->
+  <script
+    type="module"
+    src="assets/index.js"
+  ></script>
+
+  <!-- ================= INTERACCIONES ================= -->
+
   <script>
-    window.addEventListener("load", () => {
-      document.body.classList.remove("preload");
-      document.body.classList.add("loaded");
-    });
+    (() => {
+      const body = document.body;
+      const header = document.querySelector(".home-header");
+      const progress = document.getElementById("readingProgress");
+      const menuButton = document.getElementById("mobileMenuToggle");
+      const navigation = document.getElementById("homeNavigation");
+      const backToTop = document.getElementById("backToTop");
 
-    window.addEventListener("scroll", () => {
-      const header = document.querySelector(".glass-header");
-      if (window.scrollY > 60) header.classList.add("shrink");
-      else header.classList.remove("shrink");
-    });
+      if (
+        !header ||
+        !progress ||
+        !menuButton ||
+        !navigation ||
+        !backToTop
+      ) {
+        return;
+      }
+
+      /* Entrada inicial */
+      window.addEventListener("load", () => {
+        body.classList.remove("preload");
+        body.classList.add("loaded");
+      });
+
+      /* Menú móvil */
+      function closeMenu() {
+        navigation.classList.remove("is-open");
+        menuButton.classList.remove("is-active");
+
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute(
+          "aria-label",
+          "Abrir menú de navegación"
+        );
+
+        body.classList.remove("menu-open");
+      }
+
+      menuButton.addEventListener("click", () => {
+        const isOpen = navigation.classList.toggle("is-open");
+
+        menuButton.classList.toggle("is-active", isOpen);
+
+        menuButton.setAttribute(
+          "aria-expanded",
+          String(isOpen)
+        );
+
+        menuButton.setAttribute(
+          "aria-label",
+          isOpen
+            ? "Cerrar menú de navegación"
+            : "Abrir menú de navegación"
+        );
+
+        body.classList.toggle("menu-open", isOpen);
+      });
+
+      navigation.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", closeMenu);
+      });
+
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          closeMenu();
+        }
+      });
+
+      document.addEventListener("click", event => {
+        if (
+          navigation.classList.contains("is-open") &&
+          !navigation.contains(event.target) &&
+          !menuButton.contains(event.target)
+        ) {
+          closeMenu();
+        }
+      });
+
+      /* Scroll, progreso y botón arriba */
+      let ticking = false;
+
+      function updateScrollUI() {
+        const scrollTop = window.scrollY;
+
+        const maxScroll =
+          document.documentElement.scrollHeight -
+          window.innerHeight;
+
+        header.classList.toggle(
+          "shrink",
+          scrollTop > 35
+        );
+
+        backToTop.classList.toggle(
+          "is-visible",
+          scrollTop > 500
+        );
+
+        const percentage =
+          maxScroll > 0
+            ? (scrollTop / maxScroll) * 100
+            : 0;
+
+        progress.style.width = percentage + "%";
+
+        ticking = false;
+      }
+
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (!ticking) {
+            window.requestAnimationFrame(updateScrollUI);
+            ticking = true;
+          }
+        },
+        { passive: true }
+      );
+
+      updateScrollUI();
+
+      backToTop.addEventListener("click", () => {
+        window.scrollTo({
+          top: 0,
+          behavior: window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+          ).matches
+            ? "auto"
+            : "smooth"
+        });
+      });
+
+      /* Reveal de secciones */
+      const sections = document.querySelectorAll(
+        ".home-section, .home-testimonials, .home-manifesto, .home-experience, .home-final-cta"
+      );
+
+      if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(
+          entries => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                observer.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.12 }
+        );
+
+        sections.forEach(section => {
+          observer.observe(section);
+        });
+      } else {
+        sections.forEach(section => {
+          section.classList.add("visible");
+        });
+      }
+
+      /* Parallax solo en escritorio */
+      const hero = document.querySelector(".hero-visual");
+
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      if (
+        hero &&
+        window.matchMedia("(min-width: 901px)").matches &&
+        !reduceMotion
+      ) {
+        hero.addEventListener("pointermove", event => {
+          const rect = hero.getBoundingClientRect();
+
+          const x =
+            (event.clientX - rect.left) / rect.width - 0.5;
+
+          const y =
+            (event.clientY - rect.top) / rect.height - 0.5;
+
+          hero.style.setProperty(
+            "--pointer-x",
+            (x * 7) + "px"
+          );
+
+          hero.style.setProperty(
+            "--pointer-y",
+            (y * 7) + "px"
+          );
+        });
+
+        hero.addEventListener("pointerleave", () => {
+          hero.style.setProperty("--pointer-x", "0px");
+          hero.style.setProperty("--pointer-y", "0px");
+        });
+      }
+    })();
   </script>
+
 </body>
 </html>
