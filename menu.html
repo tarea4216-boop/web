@@ -1,290 +1,874 @@
+
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Menú | El Camarón de Oro</title>
 
-  <!-- Estilos principales -->
-  <link rel="stylesheet" href="assets/styles.css" />
+  <!-- =====================================================
+       ESTILOS GLOBALES
+       ===================================================== -->
+  <link rel="stylesheet" href="assets/styles.css">
 
-  <!-- Estilos del carrusel -->
-  <link rel="stylesheet" href="carousel.css" />
+  <!-- =====================================================
+       ESTILOS DEL CARRUSEL
+       ===================================================== -->
+  <link rel="stylesheet" href="carousel.css">
 
-  <!-- 🔔 Sistema de notificaciones toast -->
-<link rel="stylesheet" href="assets/toast/toast.css">
-<script src="assets/toast/toast.js"></script>
+  <!-- =====================================================
+       ESTILOS EXCLUSIVOS DEL MENÚ
+       ===================================================== -->
+  <link rel="stylesheet" href="menu.css">
+
+  <!-- =====================================================
+       SISTEMA DE NOTIFICACIONES
+       ===================================================== -->
+  <link rel="stylesheet" href="assets/toast/toast.css">
+  <script src="assets/toast/toast.js"></script>
 
 </head>
-<body>
+
+<body class="menu-page">
+
+  <!-- =====================================================
+       HEADER
+       ui.js / mountChrome() se encarga de cargar su contenido
+       ===================================================== -->
   <header class="header"></header>
 
-  <main class="container">
-    <section class="section">
-      <h2>Nuestro Menú</h2>
 
-      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-        <select id="categoria" class="btn">
-          <option value="">Todas las categorías</option>
-          <option>Pollo</option>
-          <option>Carne</option>
-          <option>Camarón</option>
-          <option>Pescado</option>
-          <option>Gaseosa</option>
-          <option>Infusiones</option>
-          <option>Alcohol</option>
-          <option>Postres</option>
-        </select>
-        <input id="search" class="btn" placeholder="Buscar..." />
+  <!-- =====================================================
+       CONTENIDO PRINCIPAL
+       ===================================================== -->
+  <main class="menu-main">
+
+    <section class="menu-section">
+
+      <!-- =================================================
+           CABECERA DEL MENÚ
+           ================================================= -->
+      <div class="menu-heading">
+
+        <span class="menu-kicker">
+          EL CAMARÓN DE ORO
+        </span>
+
+        <h1>
+          Nuestra Carta
+        </h1>
+
+        <p>
+          Sabores preparados para disfrutar en cada momento.
+        </p>
+
+        <div class="menu-heading-line">
+          <span></span>
+          <b>◇</b>
+          <span></span>
+        </div>
+
       </div>
 
-      <!-- Aquí menu.js insertará los carruseles dinámicos -->
-      <div class="grid cols-3" id="menuGrid"></div>
+
+      <!-- =================================================
+           CONTROLES DE BÚSQUEDA
+           Los IDs se mantienen porque menu.js los utiliza.
+           ================================================= -->
+      <div class="menu-controls">
+
+        <!-- Buscador -->
+        <div class="menu-search">
+
+          <span class="search-icon" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              width="21"
+              height="21"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-4-4"></path>
+            </svg>
+          </span>
+
+          <input
+            id="search"
+            type="search"
+            placeholder="Buscar un plato..."
+            autocomplete="off"
+            aria-label="Buscar productos"
+          >
+
+          <span class="search-shortcut">
+            Buscar
+          </span>
+
+        </div>
+
+
+        <!-- Categorías -->
+        <div class="menu-category">
+
+          <label for="categoria">
+            Categoría
+          </label>
+
+          <select id="categoria">
+
+            <option value="">
+              Todas las categorías
+            </option>
+
+            <option value="Pollo">
+              Pollo
+            </option>
+
+            <option value="Carne">
+              Carne
+            </option>
+
+            <option value="Camarón">
+              Camarón
+            </option>
+
+            <option value="Pescado">
+              Pescado
+            </option>
+
+            <option value="Gaseosa">
+              Gaseosa
+            </option>
+
+            <option value="Infusiones">
+              Infusiones
+            </option>
+
+            <option value="Alcohol">
+              Alcohol
+            </option>
+
+            <option value="Postres">
+              Postres
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           CONTENEDOR DE PRODUCTOS
+
+           menu.js inserta aquí las categorías y carruseles.
+           NO CAMBIAR EL ID.
+           ================================================= -->
+      <div
+        id="menuGrid"
+        class="menu-grid"
+      ></div>
+
     </section>
+
   </main>
 
-  <footer class="footer"></footer>
 
-  <!-- Floating cart -->
-  <button id="floatingCart" aria-label="Abrir carrito">🛒 <span class="count">0</span></button>
+  <!-- =====================================================
+       CARRITO FLOTANTE
+       ===================================================== -->
+  <button
+    id="floatingCart"
+    class="menu-floating-cart"
+    type="button"
+    aria-label="Abrir carrito"
+    title="Abrir carrito"
+  >
 
-  <!-- Drawer (carrito lateral) -->
-  <div class="drawer" id="cartDrawer">
-    <div class="overlay" onclick="document.getElementById('cartDrawer').classList.remove('open')"></div>
-    <div class="panel">
-      <header>Tu carrito</header>
-      <div class="content" id="cartList"></div>
-      <footer>
-        <div style="flex:1;font-weight:800" id="cartTotal">Total: S/ 0.00</div>
-        <button class="btn ghost" id="clearCart">Vaciar</button>
-        <!-- Botón corregido -->
-        <button class="btn primary" id="checkoutBtn">Pagar ahora</button>
-      </footer>
+    <span class="cart-icon" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        width="25"
+        height="25"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="9" cy="20" r="1"></circle>
+        <circle cx="19" cy="20" r="1"></circle>
+        <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 8H6"></path>
+      </svg>
+    </span>
+
+    <span class="count">
+      0
+    </span>
+
+  </button>
+
+
+ <!-- =====================================================
+     DRAWER DEL CARRITO
+     ===================================================== -->
+
+<div
+  class="drawer menu-cart-drawer"
+  id="cartDrawer"
+  aria-hidden="true"
+>
+
+  <!-- Fondo oscuro -->
+  <div
+    class="overlay"
+    onclick="document.getElementById('cartDrawer').classList.remove('open')"
+  ></div>
+
+  <!-- Panel -->
+  <div class="panel">
+
+    <!-- CABECERA DEL CARRITO -->
+    <header class="cart-header">
+
+      <div class="cart-header-info">
+
+        <span class="cart-kicker">
+          TU PEDIDO
+        </span>
+
+        <h2>
+          Tu carrito
+        </h2>
+
+      </div>
+
+      <button
+        type="button"
+        class="cart-close"
+        aria-label="Cerrar carrito"
+        onclick="document.getElementById('cartDrawer').classList.remove('open')"
+      >
+        ×
+      </button>
+
+    </header>
+
+
+    <!-- PRODUCTOS -->
+    <div
+      class="content"
+      id="cartList"
+    ></div>
+
+
+    <!-- =================================================
+         PIE REAL DEL CARRITO
+         ================================================= -->
+
+    <div class="cart-footer">
+
+      <div class="cart-total-box">
+
+        <span>
+          Total
+        </span>
+
+        <strong id="cartTotal">
+          Total: S/ 0.00
+        </strong>
+
+      </div>
+
+
+      <div class="cart-actions">
+
+        <button
+          class="btn ghost cart-clear"
+          id="clearCart"
+          type="button"
+        >
+          Vaciar
+        </button>
+
+
+        <button
+          class="btn primary cart-checkout"
+          id="checkoutBtn"
+          type="button"
+        >
+          Pagar ahora
+        </button>
+
+      </div>
+
     </div>
+
   </div>
 
-  <!-- Modal de producto -->
-  <div class="modal-overlay" id="productModal">
-    <div class="modal">
-      <img id="modalImage" src="" alt="">
+</div>
+
+
+<!-- =====================================================
+     MODAL DE PRODUCTO
+     ===================================================== -->
+
+<div
+  class="modal-overlay menu-product-modal"
+  id="productModal"
+  aria-hidden="true"
+>
+
+  <div class="modal">
+
+    <button
+      type="button"
+      class="modal-close"
+      aria-label="Cerrar"
+      onclick="document.getElementById('productModal').style.display='none'"
+    >
+      ×
+    </button>
+
+    <div class="modal-image-wrap">
+
+      <img
+        id="modalImage"
+        src=""
+        alt=""
+      >
+
+    </div>
+
+    <div class="modal-content">
+
+      <span class="modal-kicker">
+        EL CAMARÓN DE ORO
+      </span>
+
       <h2 id="modalTitle"></h2>
+
       <p id="modalDesc"></p>
-      <div class="price" id="modalPrice"></div>
-      <button id="addToCartBtn" class="btn primary">Agregar al carrito</button>
+
+      <div
+        class="price modal-price"
+        id="modalPrice"
+      ></div>
+
+      <button
+        id="addToCartBtn"
+        class="btn primary modal-add"
+        type="button"
+      >
+        <span>+</span>
+        Agregar al carrito
+      </button>
+
     </div>
+
   </div>
 
-  <!-- Scripts -->
+</div>
+
+<!-- =====================================================
+     FOOTER PRINCIPAL DE LA PÁGINA
+     Necesario para mountChrome() de ui.js
+     ===================================================== -->
+<footer class="footer menu-footer">
+
+  <div class="container footer-inner">
+
+    <a class="footer-brand" href="index.html">
+      <img
+        src="https://i.ibb.co/dKnPMDb/camaron-logo.png"
+        alt="El Camarón de Oro"
+      />
+
+      <span>
+        El Camarón de Oro
+        <small>Gastronomía campestre</small>
+      </span>
+    </a>
+
+    <p>
+      Sabores que conquistan.<br>
+      Tradición que perdura.
+    </p>
+
+    <div class="footer-navigation">
+      <a href="index.html">Inicio</a>
+      <a href="menu.html">Menú</a>
+      <a href="promos.html">Promociones</a>
+      <a href="contacto.html">Contacto</a>
+    </div>
+
+    <small class="footer-copyright">
+      © 2025 El Camarón de Oro. Todos los derechos reservados.
+    </small>
+
+  </div>
+
+</footer>
+  <!-- =====================================================
+       SCRIPTS PRINCIPALES
+       ===================================================== -->
+
+  <!-- Carrusel -->
   <script src="carousel.js"></script>
+
+  <!-- Lógica del menú -->
   <script type="module" src="assets/menu.js"></script>
- <script type="module" src="./modal.js"></script>
 
-  <!-- Animación: volar imagen al carrito -->
- <!-- Animación: volar imagen al carrito -->
-<!-- ESTILOS NECESARIOS -->
-<style>
-.flying-drop {
-  position: fixed;
-  z-index: 9999;
-  background-size: cover;
-  background-position: center;
-  border-radius: 12px;
-  pointer-events: none;
-}
+  <!-- Modal -->
+  <script type="module" src="./modal.js"></script>
 
-.flying-drop-shadow {
-  position: fixed;
-  z-index: 9998;
-  height: 12px;
-  background: rgba(0,0,0,0.15);
-  border-radius: 50%;
-  filter: blur(6px);
-  pointer-events: none;
-}
 
-.floating-cart-bounce {
-  animation: cartBounce 520ms cubic-bezier(.25,1.5,.5,1) 1;
-}
+  <!-- =====================================================
+       ANIMACIÓN DE PRODUCTO HACIA EL CARRITO
 
-@keyframes cartBounce {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.2); }
-  60% { transform: scale(0.92); }
-  100% { transform: scale(1); }
-}
+       Se conserva la funcionalidad existente.
+       ===================================================== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
 
-.floating-count-pop {
-  animation: countPop 360ms ease-out 1;
-}
+      const cartBtn = document.getElementById('floatingCart');
 
-@keyframes countPop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.35); }
-  100% { transform: scale(1); }
-}
-</style>
 
-<!-- SCRIPT DE ANIMACIÓN DE "AÑADIR AL CARRITO" -->
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const cartBtn = document.getElementById('floatingCart');
+      function getTargetElement() {
 
-  function getTargetElement() {
-    if (cartBtn && getComputedStyle(cartBtn).display !== 'none' && cartBtn.offsetWidth > 0) return cartBtn;
-    return document.getElementById('checkoutBtn') ||
-           document.querySelector('.drawer .panel header') ||
-           document.getElementById('cartDrawer') ||
-           null;
-  }
-
-  function animateToCart(sourceImgEl) {
-    if (!sourceImgEl) return;
-    const imgRect = sourceImgEl.getBoundingClientRect();
-    const targetEl = getTargetElement();
-    if (!targetEl) return;
-    const cartRect = targetEl.getBoundingClientRect();
-    if (!imgRect.width || !imgRect.height || (!cartRect.width && !cartRect.height)) return;
-
-    const DROP_SIZE = Math.max(36, Math.min(72, Math.round(Math.min(imgRect.width, imgRect.height) * 0.36)));
-
-    const drop = document.createElement('div');
-    drop.className = 'flying-drop';
-    drop.style.left = imgRect.left + 'px';
-    drop.style.top = imgRect.top + 'px';
-    drop.style.width = imgRect.width + 'px';
-    drop.style.height = imgRect.height + 'px';
-    drop.style.backgroundImage = `url("${sourceImgEl.src}")`;
-    drop.style.opacity = '1';
-
-    const shadow = document.createElement('div');
-    shadow.className = 'flying-drop-shadow';
-    shadow.style.left = (imgRect.left) + 'px';
-    shadow.style.top = (imgRect.top + imgRect.height - 8) + 'px';
-    shadow.style.width = Math.max(48, imgRect.width) + 'px';
-    shadow.style.opacity = '0.9';
-
-    document.body.appendChild(shadow);
-    document.body.appendChild(drop);
-
-    const MORPH_DURATION = 260;
-    const morph = drop.animate([
-      { width: imgRect.width + 'px', height: imgRect.height + 'px', borderRadius: '12px', transform: 'scale(1)', opacity: 1 },
-      { width: DROP_SIZE + 'px', height: DROP_SIZE + 'px', borderRadius: '50%', transform: 'scale(0.96)', opacity: 0.98 }
-    ], { duration: MORPH_DURATION, easing: 'cubic-bezier(.22,.9,.18,1)', fill: 'forwards' });
-
-    const shadowMorph = shadow.animate([
-      { transform: 'scale(1)', opacity: 0.9 },
-      { transform: `scale(${Math.max(0.42, DROP_SIZE / (imgRect.width||1))})`, opacity: 0.62 }
-    ], { duration: MORPH_DURATION, easing: 'ease-out', fill: 'forwards' });
-
-    morph.onfinish = () => {
-      const curRect = drop.getBoundingClientRect();
-      const startX = curRect.left;
-      const startY = curRect.top;
-
-      const targetX = cartRect.left + (cartRect.width / 2) - (DROP_SIZE / 2);
-      const targetY = cartRect.top + (cartRect.height / 2) - (DROP_SIZE / 2);
-      const deltaX = targetX - startX;
-      const deltaY = targetY - startY;
-
-      const arcHeight = Math.min(180, Math.max(60, Math.abs(deltaX) * 0.18));
-
-      const flight = [
-        { transform: 'translate(0px, 0px) rotate(0deg)', opacity: 1, offset: 0 },
-        { transform: `translate(${deltaX * 0.52}px, ${deltaY * 0.52 - arcHeight}px) rotate(${deltaX > 0 ? 8 : -8}deg)`, opacity: 0.96, offset: 0.52 },
-        { transform: `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX > 0 ? 22 : -22}deg)`, opacity: 0 }
-      ];
-
-      const FLIGHT_DURATION = 1000;
-      const anim = drop.animate(flight, { duration: FLIGHT_DURATION, easing: 'cubic-bezier(.22,.9,.18,1)', fill: 'forwards' });
-
-      const sAnim = shadow.animate([
-        { transform: 'translate(0px,0px) scale(1)', opacity: 0.9 },
-        { transform: `translate(${deltaX * 0.52}px, ${Math.max(0, deltaY * 0.52 + arcHeight/2)}px) scale(0.56)`, opacity: 0.5 },
-        { transform: `translate(${deltaX}px, ${Math.max(0, deltaY)}px) scale(0.18)`, opacity: 0 }
-      ], { duration: FLIGHT_DURATION, easing: 'ease-out', fill: 'forwards' });
-
-      anim.onfinish = () => {
-        if (targetEl === cartBtn) {
-          cartBtn.classList.add('floating-cart-bounce');
-          setTimeout(() => cartBtn.classList.remove('floating-cart-bounce'), 520);
-        } else {
-          targetEl.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.06)' }, { transform: 'scale(1)' }], { duration: 340, easing: 'ease-out' });
+        if (
+          cartBtn &&
+          getComputedStyle(cartBtn).display !== 'none' &&
+          cartBtn.offsetWidth > 0
+        ) {
+          return cartBtn;
         }
 
-        // contador
-        const countEl = document.querySelector('#floatingCart .count');
-        if (countEl) {
-          countEl.classList.add('floating-count-pop');
-          setTimeout(() => countEl.classList.remove('floating-count-pop'), 360);
+        return document.getElementById('checkoutBtn') ||
+          document.querySelector('.drawer .panel header') ||
+          document.getElementById('cartDrawer') ||
+          null;
+      }
+
+
+      function animateToCart(sourceImgEl) {
+
+        if (!sourceImgEl) return;
+
+        const imgRect = sourceImgEl.getBoundingClientRect();
+        const targetEl = getTargetElement();
+
+        if (!targetEl) return;
+
+        const cartRect = targetEl.getBoundingClientRect();
+
+        if (
+          !imgRect.width ||
+          !imgRect.height ||
+          (!cartRect.width && !cartRect.height)
+        ) {
+          return;
         }
 
-        // 💧 splash animación estilo gota
-        const splash = document.createElement('div');
-        splash.className = 'cart-splash';
-        cartBtn.appendChild(splash);
-        setTimeout(() => splash.remove(), 500);
 
-        try { drop.remove(); } catch (e) {}
-        try { shadow.remove(); } catch (e) {}
-      };
-
-      setTimeout(() => { if (drop.parentNode) drop.remove(); if (shadow.parentNode) shadow.remove(); }, FLIGHT_DURATION + MORPH_DURATION + 600);
-    };
-  }
-
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.add-to-cart, .btn.add-to-cart, [data-add-to-cart], [data-add], #addToCartBtn, button[data-add]');
-    if (!btn) return;
-
-    const card = btn.closest('.carousel-item, .card, .product-card');
-    let img = null;
-    if (card) img = card.querySelector('img');
-    if (!img) img = document.querySelector('.modal img') || document.querySelector('#modalImage');
-
-    if (img) animateToCart(img);
-  });
-
-  document.addEventListener('itemAdded', (ev) => {
-    if (ev.detail && ev.detail.img) animateToCart(ev.detail.img);
-  });
-});
-</script>
-
-<!-- 💧 Estilo del splash sobre el carrito -->
-<style>
-.cart-splash {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 50%;
-  pointer-events: none;
-  transform: translate(-50%, -50%) scale(1);
-  animation: dropSplash 480ms ease-out forwards;
-  z-index: 1;
-}
-
-@keyframes dropSplash {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(2.4);
-    opacity: 0.45;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(3.2);
-    opacity: 0;
-  }
-}
-</style>
+        const DROP_SIZE = Math.max(
+          36,
+          Math.min(
+            72,
+            Math.round(
+              Math.min(imgRect.width, imgRect.height) * 0.36
+            )
+          )
+        );
 
 
-<div id="toastContainer" class="toast-container"></div>
+        /* ===============================================
+           GOTA / IMAGEN
+           =============================================== */
+
+        const drop = document.createElement('div');
+
+        drop.className = 'flying-drop';
+
+        drop.style.left = imgRect.left + 'px';
+        drop.style.top = imgRect.top + 'px';
+        drop.style.width = imgRect.width + 'px';
+        drop.style.height = imgRect.height + 'px';
+
+        drop.style.backgroundImage =
+          `url("${sourceImgEl.src}")`;
+
+        drop.style.opacity = '1';
+
+
+        /* ===============================================
+           SOMBRA
+           =============================================== */
+
+        const shadow = document.createElement('div');
+
+        shadow.className = 'flying-drop-shadow';
+
+        shadow.style.left = imgRect.left + 'px';
+
+        shadow.style.top =
+          (imgRect.top + imgRect.height - 8) + 'px';
+
+        shadow.style.width =
+          Math.max(48, imgRect.width) + 'px';
+
+        shadow.style.opacity = '0.9';
+
+
+        document.body.appendChild(shadow);
+        document.body.appendChild(drop);
+
+
+        /* ===============================================
+           TRANSFORMACIÓN
+           =============================================== */
+
+        const MORPH_DURATION = 260;
+
+        const morph = drop.animate(
+          [
+            {
+              width: imgRect.width + 'px',
+              height: imgRect.height + 'px',
+              borderRadius: '12px',
+              transform: 'scale(1)',
+              opacity: 1
+            },
+            {
+              width: DROP_SIZE + 'px',
+              height: DROP_SIZE + 'px',
+              borderRadius: '50%',
+              transform: 'scale(0.96)',
+              opacity: 0.98
+            }
+          ],
+          {
+            duration: MORPH_DURATION,
+            easing: 'cubic-bezier(.22,.9,.18,1)',
+            fill: 'forwards'
+          }
+        );
+
+
+        shadow.animate(
+          [
+            {
+              transform: 'scale(1)',
+              opacity: 0.9
+            },
+            {
+              transform:
+                `scale(${Math.max(
+                  0.42,
+                  DROP_SIZE / (imgRect.width || 1)
+                )})`,
+              opacity: 0.62
+            }
+          ],
+          {
+            duration: MORPH_DURATION,
+            easing: 'ease-out',
+            fill: 'forwards'
+          }
+        );
+
+
+        /* ===============================================
+           VUELO
+           =============================================== */
+
+        morph.onfinish = () => {
+
+          const curRect =
+            drop.getBoundingClientRect();
+
+          const startX = curRect.left;
+          const startY = curRect.top;
+
+
+          const targetX =
+            cartRect.left +
+            (cartRect.width / 2) -
+            (DROP_SIZE / 2);
+
+          const targetY =
+            cartRect.top +
+            (cartRect.height / 2) -
+            (DROP_SIZE / 2);
+
+
+          const deltaX = targetX - startX;
+          const deltaY = targetY - startY;
+
+
+          const arcHeight = Math.min(
+            180,
+            Math.max(60, Math.abs(deltaX) * 0.18)
+          );
+
+
+          const flight = [
+            {
+              transform:
+                'translate(0px, 0px) rotate(0deg)',
+              opacity: 1,
+              offset: 0
+            },
+            {
+              transform:
+                `translate(
+                  ${deltaX * 0.52}px,
+                  ${deltaY * 0.52 - arcHeight}px
+                )
+                rotate(${deltaX > 0 ? 8 : -8}deg)`,
+              opacity: 0.96,
+              offset: 0.52
+            },
+            {
+              transform:
+                `translate(${deltaX}px, ${deltaY}px)
+                 rotate(${deltaX > 0 ? 22 : -22}deg)`,
+              opacity: 0
+            }
+          ];
+
+
+          const FLIGHT_DURATION = 1000;
+
+
+          const anim = drop.animate(
+            flight,
+            {
+              duration: FLIGHT_DURATION,
+              easing: 'cubic-bezier(.22,.9,.18,1)',
+              fill: 'forwards'
+            }
+          );
+
+
+          shadow.animate(
+            [
+              {
+                transform:
+                  'translate(0px,0px) scale(1)',
+                opacity: 0.9
+              },
+              {
+                transform:
+                  `translate(
+                    ${deltaX * 0.52}px,
+                    ${Math.max(
+                      0,
+                      deltaY * 0.52 + arcHeight / 2
+                    )}px
+                  )
+                  scale(0.56)`,
+                opacity: 0.5
+              },
+              {
+                transform:
+                  `translate(
+                    ${deltaX}px,
+                    ${Math.max(0, deltaY)}px
+                  )
+                  scale(0.18)`,
+                opacity: 0
+              }
+            ],
+            {
+              duration: FLIGHT_DURATION,
+              easing: 'ease-out',
+              fill: 'forwards'
+            }
+          );
+
+
+          anim.onfinish = () => {
+
+            /* Rebote del carrito */
+            if (targetEl === cartBtn) {
+
+              cartBtn.classList.add(
+                'floating-cart-bounce'
+              );
+
+              setTimeout(() => {
+                cartBtn.classList.remove(
+                  'floating-cart-bounce'
+                );
+              }, 520);
+
+            } else {
+
+              targetEl.animate(
+                [
+                  { transform: 'scale(1)' },
+                  { transform: 'scale(1.06)' },
+                  { transform: 'scale(1)' }
+                ],
+                {
+                  duration: 340,
+                  easing: 'ease-out'
+                }
+              );
+
+            }
+
+
+            /* Contador */
+            const countEl =
+              document.querySelector(
+                '#floatingCart .count'
+              );
+
+            if (countEl) {
+
+              countEl.classList.add(
+                'floating-count-pop'
+              );
+
+              setTimeout(() => {
+                countEl.classList.remove(
+                  'floating-count-pop'
+                );
+              }, 360);
+
+            }
+
+
+            /* Splash */
+            if (cartBtn) {
+
+              const splash =
+                document.createElement('div');
+
+              splash.className =
+                'cart-splash';
+
+              cartBtn.appendChild(splash);
+
+              setTimeout(() => {
+                splash.remove();
+              }, 500);
+
+            }
+
+
+            try {
+              drop.remove();
+            } catch (e) {}
+
+            try {
+              shadow.remove();
+            } catch (e) {}
+
+          };
+
+
+          setTimeout(() => {
+
+            if (drop.parentNode) {
+              drop.remove();
+            }
+
+            if (shadow.parentNode) {
+              shadow.remove();
+            }
+
+          }, FLIGHT_DURATION + MORPH_DURATION + 600);
+
+        };
+
+      }
+
+
+      /* ===============================================
+         DETECTAR AGREGAR AL CARRITO
+         =============================================== */
+
+      document.addEventListener('click', (e) => {
+
+        const btn = e.target.closest(
+          '.add-to-cart, ' +
+          '.btn.add-to-cart, ' +
+          '[data-add-to-cart], ' +
+          '[data-add], ' +
+          '#addToCartBtn, ' +
+          'button[data-add]'
+        );
+
+        if (!btn) return;
+
+
+        const card =
+          btn.closest(
+            '.carousel-item, .card, .product-card'
+          );
+
+
+        let img = null;
+
+
+        if (card) {
+          img = card.querySelector('img');
+        }
+
+
+        if (!img) {
+          img =
+            document.querySelector('.modal img') ||
+            document.querySelector('#modalImage');
+        }
+
+
+        if (img) {
+          animateToCart(img);
+        }
+
+      });
+
+
+      /* Evento personalizado */
+      document.addEventListener(
+        'itemAdded',
+        (ev) => {
+
+          if (
+            ev.detail &&
+            ev.detail.img
+          ) {
+            animateToCart(
+              ev.detail.img
+            );
+          }
+
+        }
+      );
+
+    });
+  </script>
+
+
+  <!-- =====================================================
+       TOAST
+       ===================================================== -->
+  <div
+    id="toastContainer"
+    class="toast-container"
+  ></div>
 
 </body>
 </html>
+
