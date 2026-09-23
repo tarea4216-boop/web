@@ -182,18 +182,32 @@
     );
 
 
-  // =====================================================
-  // MAPA CARTO
-  // =====================================================
+// =====================================================
+// MAPA OPENSTREETMAP
+// =====================================================
 
-  L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    {
-      attribution:
-        '&copy; OpenStreetMap & CartoDB'
-    }
-  ).addTo(map);
+const mapa = L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }
+);
 
+const satelite = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {
+    maxZoom: 19,
+    attribution: '&copy; Esri, Maxar, Earthstar Geographics'
+  }
+);
+
+mapa.addTo(map);
+
+L.control.layers({
+  '🗺️ Mapa': mapa,
+  '🛰️ Satélite': satelite
+}).addTo(map);
 
   // =====================================================
   // ICONOS
