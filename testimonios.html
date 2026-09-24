@@ -1,662 +1,583 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Contacto | El Camarón de Oro</title>
+  <title>Testimonios | El Camarón de Oro</title>
 
   <link rel="stylesheet" href="assets/styles.css">
 
   <style>
-    /* =========================================================
-       PÁGINA DE CONTACTO
-       ========================================================= */
+    /* =========================================
+       TESTIMONIOS
+       El Camarón de Oro
+       Diseño premium
+       ========================================= */
 
-    .contact-page {
+    .testimonials-page {
       position: relative;
-      min-height: 100vh;
+      min-height: calc(100vh - 140px);
       overflow: hidden;
-      padding: 20px 0 75px;
 
       background:
-        radial-gradient(circle at 8% 10%, rgba(201, 154, 91, 0.14), transparent 25%),
-        radial-gradient(circle at 92% 80%, rgba(232, 201, 154, 0.17), transparent 28%),
+        radial-gradient(
+          circle at 8% 12%,
+          rgba(201, 154, 91, 0.10),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 92% 75%,
+          rgba(201, 154, 91, 0.08),
+          transparent 30%
+        ),
         var(--cream);
     }
 
-    .contact-page::before,
-    .contact-page::after {
+    /* =========================================
+       DECORACIONES DE FONDO
+       ========================================= */
+
+    .testimonials-page::before {
       content: "";
+
       position: absolute;
+      top: 110px;
+      left: -160px;
+
+      width: 360px;
+      height: 360px;
+
+      border: 1px solid rgba(201, 154, 91, 0.12);
       border-radius: 50%;
+
       pointer-events: none;
     }
 
-    .contact-page::before {
-      width: 300px;
-      height: 300px;
-      top: 50px;
-      right: -150px;
-      border: 1px solid rgba(201, 154, 91, 0.20);
-    }
+    .testimonials-page::after {
+      content: "";
 
-    .contact-page::after {
-      width: 210px;
-      height: 210px;
+      position: absolute;
+      right: -170px;
       bottom: 80px;
-      left: -105px;
-      border: 1px solid rgba(201, 154, 91, 0.16);
+
+      width: 390px;
+      height: 390px;
+
+      border: 1px solid rgba(201, 154, 91, 0.10);
+      border-radius: 50%;
+
+      pointer-events: none;
     }
 
-    .contact-container {
+    .testimonials-page .section {
       position: relative;
       z-index: 1;
 
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 0 24px;
+      padding-top: 58px;
+      padding-bottom: 85px;
     }
 
-    /* =========================================================
+    /* =========================================
        ENCABEZADO
-       ========================================================= */
+       ========================================= */
 
-    .contact-heading {
-      max-width: 780px;
-      margin: 0 auto 45px;
+    .testimonials-heading {
+      max-width: 800px;
+      margin: 0 auto 52px;
+
       text-align: center;
     }
 
-    .contact-eyebrow {
+    .testimonials-eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 12px;
 
-      margin-bottom: 12px;
+      margin-bottom: 13px;
 
       color: var(--gold-dark);
 
       font-family: var(--sans);
-      font-size: 0.74rem;
+      font-size: 0.75rem;
       font-weight: 800;
+
       letter-spacing: 0.22em;
       text-transform: uppercase;
     }
 
-    .contact-eyebrow::before,
-    .contact-eyebrow::after {
+    .testimonials-eyebrow::before,
+    .testimonials-eyebrow::after {
       content: "";
 
-      width: 34px;
+      width: 32px;
       height: 1px;
+
+      background: var(--gold);
+      opacity: 0.7;
+    }
+
+    .testimonials-heading h2 {
+      margin: 0;
+
+      color: var(--ink);
+
+      font-family: var(--serif);
+      font-size: clamp(2.25rem, 5vw, 3.5rem);
+      font-weight: 700;
+
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .testimonials-heading h2::after {
+      content: "";
+
+      display: block;
+
+      width: 72px;
+      height: 2px;
+
+      margin: 19px auto 17px;
+
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--gold),
+        transparent
+      );
+    }
+
+    .testimonials-heading p {
+      max-width: 600px;
+
+      margin: 0 auto;
+
+      color: rgba(33, 26, 20, 0.67);
+
+      font-family: var(--sans);
+      font-size: 0.96rem;
+      line-height: 1.75;
+    }
+
+    /* =========================================
+       GRID
+       ========================================= */
+
+    #testiGrid {
+      position: relative;
+      z-index: 2;
+
+      align-items: stretch;
+
+      gap: 28px;
+    }
+
+    /* =========================================
+       TARJETA
+       ========================================= */
+
+    #testiGrid .testimonial-card {
+      position: relative;
+
+      display: flex;
+      flex-direction: column;
+
+      height: 100%;
+      min-height: 275px;
+
+      overflow: hidden;
+
+      background: var(--paper);
+
+      border: 1px solid rgba(201, 154, 91, 0.24);
+      border-radius: 20px;
+
+      box-shadow:
+        0 10px 28px rgba(33, 26, 20, 0.07),
+        0 2px 7px rgba(33, 26, 20, 0.04);
+
+      transition:
+        transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+    }
+
+    #testiGrid .testimonial-card:hover {
+      transform: translateY(-8px);
+
+      border-color: rgba(201, 154, 91, 0.52);
+
+      box-shadow:
+        0 22px 42px rgba(33, 26, 20, 0.13),
+        0 5px 12px rgba(33, 26, 20, 0.06);
+    }
+
+    /* =========================================
+       COMILLAS DECORATIVAS
+       ========================================= */
+
+    #testiGrid .quote-mark {
+      position: absolute;
+
+      top: 8px;
+      right: 21px;
+
+      color: rgba(201, 154, 91, 0.15);
+
+      font-family: Georgia, serif;
+      font-size: 6rem;
+      font-weight: 700;
+
+      line-height: 1;
+
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* =========================================
+       CONTENIDO
+       ========================================= */
+
+    #testiGrid .testimonial-body {
+      position: relative;
+
+      display: flex;
+      flex: 1;
+
+      flex-direction: column;
+
+      padding: 28px 28px 25px;
+    }
+
+    #testiGrid .testimonial-body::before {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: 28px;
+
+      width: 48px;
+      height: 2px;
 
       background: var(--gold);
     }
 
-    .contact-heading h2 {
-      margin: 0;
+    /* =========================================
+       ESTRELLAS
+       ========================================= */
 
-      color: var(--ink);
+    #testiGrid .testimonial-rating {
+      display: flex;
+      align-items: center;
+      gap: 2px;
 
-      font-family: var(--serif);
-      font-size: clamp(2.3rem, 5vw, 3.7rem);
-      font-weight: 700;
-      line-height: 1.05;
+      margin-bottom: 20px;
+
+      color: var(--gold);
+
+      font-size: 1.08rem;
+      letter-spacing: 0.04em;
     }
 
-    .contact-heading h2::after {
-      content: "";
+    #testiGrid .rating-number {
+      margin-left: 8px;
 
-      display: block;
-
-      width: 70px;
-      height: 3px;
-
-      margin: 18px auto 20px;
-
-      border-radius: 10px;
-
-      background: linear-gradient(
-        90deg,
-        var(--gold-dark),
-        var(--gold-light),
-        var(--gold-dark)
-      );
-    }
-
-    .contact-heading p {
-      max-width: 650px;
-      margin: 0 auto;
-
-      color: rgba(33, 26, 20, 0.68);
+      color: rgba(33, 26, 20, 0.48);
 
       font-family: var(--sans);
-      font-size: 1rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    /* =========================================
+       OPINIÓN
+       ========================================= */
+
+    #testiGrid .testimonial-opinion {
+      flex: 1;
+
+      margin-bottom: 25px;
+
+      color: rgba(33, 26, 20, 0.75);
+
+      font-family: var(--serif);
+      font-size: 1.08rem;
+      font-style: italic;
+
       line-height: 1.75;
     }
 
-    /* =========================================================
-       CONTENIDO PRINCIPAL
-       ========================================================= */
+    #testiGrid .testimonial-opinion::before {
+      content: "“";
+      color: var(--gold-dark);
 
-    .contact-content {
-      display: grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-      gap: 28px;
-      align-items: stretch;
+      font-family: Georgia, serif;
+      font-size: 1.5rem;
+      font-style: normal;
     }
 
-    /* =========================================================
-       TARJETA DE INFORMACIÓN
-       ========================================================= */
+    #testiGrid .testimonial-opinion::after {
+      content: "”";
+      color: var(--gold-dark);
 
-    .contact-card {
-      position: relative;
-      overflow: hidden;
-
-      border: 1px solid rgba(201, 154, 91, 0.28);
-      border-radius: 22px;
-
-      background: rgba(255, 250, 242, 0.95);
-
-      box-shadow:
-        0 15px 40px rgba(33, 26, 20, 0.08),
-        0 3px 10px rgba(33, 26, 20, 0.04);
+      font-family: Georgia, serif;
+      font-size: 1.5rem;
+      font-style: normal;
     }
 
-    .contact-card::before {
+    /* =========================================
+       DIVISOR
+       ========================================= */
+
+    #testiGrid .testimonial-divider {
+      width: 100%;
+      height: 1px;
+
+      margin-bottom: 17px;
+
+      background:
+        linear-gradient(
+          90deg,
+          rgba(201, 154, 91, 0.35),
+          rgba(201, 154, 91, 0.08),
+          transparent
+        );
+    }
+
+    /* =========================================
+       NOMBRE
+       ========================================= */
+
+    #testiGrid .testimonial-name {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+
+      color: var(--ink);
+
+      font-family: var(--sans);
+      font-size: 0.82rem;
+      font-weight: 800;
+
+      letter-spacing: 0.04em;
+    }
+
+    #testiGrid .testimonial-name::before {
+      content: "";
+
+      width: 8px;
+      height: 8px;
+
+      flex-shrink: 0;
+
+      background: var(--gold);
+
+      border-radius: 50%;
+
+      box-shadow: 0 0 0 4px rgba(201, 154, 91, 0.12);
+    }
+
+    /* =========================================
+       BRILLO
+       ========================================= */
+
+    #testiGrid .testimonial-card::before {
       content: "";
 
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
 
-      height: 4px;
+      top: 0;
+      left: -120%;
+
+      width: 70%;
+      height: 100%;
+
+      z-index: 5;
+
+      pointer-events: none;
 
       background: linear-gradient(
         90deg,
-        var(--gold-dark),
-        var(--gold-light),
-        var(--gold-dark)
+        transparent,
+        rgba(255, 255, 255, 0.15),
+        transparent
       );
+
+      transform: skewX(-18deg);
+
+      transition: left 0.8s ease;
     }
 
-    .contact-card-body {
-      padding: 34px;
+    #testiGrid .testimonial-card:hover::before {
+      left: 150%;
     }
 
-    /* =========================================================
-       MARCA / LOGO
-       ========================================================= */
+    /* =========================================
+       SIN TESTIMONIOS
+       ========================================= */
 
-    .contact-brand {
-      display: flex;
-      align-items: center;
-      gap: 18px;
+    #testiGrid > .muted {
+      grid-column: 1 / -1;
 
-      margin-bottom: 28px;
-    }
-
-    .contact-logo {
-      flex: 0 0 auto;
-
-      width: 82px;
-      height: 82px;
-
-      padding: 8px;
-
-      border: 1px solid rgba(201, 154, 91, 0.35);
-      border-radius: 50%;
-
-      background: var(--paper);
-
-      object-fit: contain;
-    }
-
-    .contact-brand-name {
-      margin: 0;
-
-      color: var(--ink);
-
-      font-family: var(--serif);
-      font-size: 1.65rem;
-      font-weight: 700;
-      line-height: 1.15;
-    }
-
-    .contact-brand-subtitle {
-      margin-top: 6px;
-
-      color: var(--gold-dark);
-
-      font-family: var(--sans);
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    /* =========================================================
-       DATOS
-       ========================================================= */
-
-    .contact-details {
-      display: grid;
-      gap: 17px;
-
-      margin-bottom: 28px;
-    }
-
-    .contact-detail {
-      display: flex;
-      align-items: flex-start;
-      gap: 13px;
-    }
-
-    .contact-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      flex: 0 0 auto;
-
-      width: 38px;
-      height: 38px;
-
-      border: 1px solid rgba(201, 154, 91, 0.30);
-      border-radius: 50%;
-
-      background: rgba(201, 154, 91, 0.09);
-
-      color: var(--gold-dark);
-
-      font-size: 0.95rem;
-    }
-
-    .contact-detail-text {
-      min-width: 0;
-    }
-
-    .contact-detail-label {
-      margin-bottom: 3px;
-
-      color: var(--gold-dark);
-
-      font-family: var(--sans);
-      font-size: 0.68rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .contact-detail-value {
-      color: rgba(33, 26, 20, 0.76);
-
-      font-family: var(--sans);
-      font-size: 0.93rem;
-      line-height: 1.55;
-
-      overflow-wrap: anywhere;
-    }
-
-    /* =========================================================
-       BOTONES
-       ========================================================= */
-
-    .contact-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-
-      padding-top: 24px;
-
-      border-top: 1px solid rgba(201, 154, 91, 0.20);
-    }
-
-    .contact-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-
-      min-height: 42px;
-
-      padding: 10px 16px;
-
-      border: 1px solid rgba(201, 154, 91, 0.40);
-      border-radius: 999px;
-
-      background: transparent;
-      color: var(--ink);
-
-      font-family: var(--sans);
-      font-size: 0.78rem;
-      font-weight: 800;
-
-      text-decoration: none;
-
-      transition:
-        background 0.25s ease,
-        color 0.25s ease,
-        border-color 0.25s ease,
-        transform 0.25s ease;
-    }
-
-    .contact-action:hover {
-      transform: translateY(-2px);
-
-      border-color: var(--gold-dark);
-
-      background: var(--gold-dark);
-      color: #fffaf2;
-    }
-
-    /* =========================================================
-       WHATSAPP
-       ========================================================= */
-
-    .contact-whatsapp {
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-
-      min-height: 42px;
-      padding: 10px 16px;
-
-      border: 1px solid var(--gold-dark) !important;
-      border-radius: 999px;
-
-      background: var(--gold-dark) !important;
-      color: #fffaf2 !important;
-
-      font-family: var(--sans);
-      font-size: 0.78rem;
-      font-weight: 800;
-
-      text-decoration: none;
-
-      opacity: 1 !important;
-      visibility: visible !important;
-
-      transition:
-        background 0.25s ease,
-        color 0.25s ease,
-        border-color 0.25s ease,
-        transform 0.25s ease;
-    }
-
-    .contact-whatsapp:hover {
-      transform: translateY(-2px);
-
-      background: var(--ink) !important;
-      border-color: var(--ink) !important;
-      color: #fffaf2 !important;
-    }
-
-    /* =========================================================
-       MAPA
-       ========================================================= */
-
-    .contact-map-card {
-      position: relative;
-      overflow: hidden;
-
-      min-height: 500px;
-
-      border: 1px solid rgba(201, 154, 91, 0.28);
-      border-radius: 22px;
-
-      background: var(--ink);
-
-      box-shadow:
-        0 15px 40px rgba(33, 26, 20, 0.10),
-        0 3px 10px rgba(33, 26, 20, 0.05);
-    }
-
-    .map-title {
-      position: absolute;
-
-      top: 18px;
-      left: 18px;
-
-      z-index: 3;
-
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      padding: 9px 14px;
-
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 999px;
-
-      background: rgba(33, 26, 20, 0.78);
-      color: #fffaf2;
-
-      backdrop-filter: blur(8px);
-
-      font-family: var(--sans);
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.10em;
-      text-transform: uppercase;
-    }
-
-    .map-title::before {
-      content: "⌖";
-
-      color: var(--gold-light);
-
-      font-size: 1rem;
-    }
-
-    .map-wrapper {
-      width: 100%;
-      height: 100%;
-      min-height: 500px;
-    }
-
-    .map-wrapper iframe {
-      display: block;
-
-      width: 100%;
-      height: 100%;
-      min-height: 500px;
-
-      border: 0;
-    }
-
-    /* =========================================================
-       ERROR
-       ========================================================= */
-
-    .contact-error {
-      padding: 30px;
-
-      border: 1px dashed rgba(201, 154, 91, 0.45);
-      border-radius: 18px;
-
-      color: rgba(33, 26, 20, 0.65);
+      padding: 55px 25px;
 
       text-align: center;
 
+      color: var(--gold-dark);
+
+      background: rgba(255, 250, 242, 0.65);
+
+      border: 1px dashed rgba(201, 154, 91, 0.35);
+      border-radius: 16px;
+
       font-family: var(--sans);
     }
 
-    /* =========================================================
+    /* =========================================
        TABLET
-       ========================================================= */
+       ========================================= */
 
     @media (max-width: 900px) {
 
-      .contact-container {
-        padding: 0 20px;
+      .testimonials-page .section {
+        padding-top: 45px;
+        padding-bottom: 70px;
       }
 
-      .contact-content {
-        grid-template-columns: 1fr;
+      .testimonials-heading {
+        margin-bottom: 42px;
       }
 
-      .contact-map-card {
-        min-height: 430px;
+      #testiGrid {
+        gap: 22px;
       }
 
-      .map-wrapper,
-      .map-wrapper iframe {
-        min-height: 430px;
+      #testiGrid .testimonial-body {
+        padding: 24px 22px 22px;
+      }
+
+      #testiGrid .testimonial-body::before {
+        left: 22px;
+      }
+
+      #testiGrid .testimonial-opinion {
+        font-size: 1rem;
       }
     }
 
-    /* =========================================================
-       CELULARES
-       ========================================================= */
+    /* =========================================
+       CELULAR
+       ========================================= */
 
     @media (max-width: 700px) {
 
-      .contact-page {
-        padding: 10px 0 55px;
+      .testimonials-page .section {
+        padding-top: 36px;
+        padding-bottom: 55px;
       }
 
-      .contact-container {
-        padding: 0 16px;
+      .testimonials-heading {
+        margin-bottom: 35px;
       }
 
-      .contact-heading {
-        margin-bottom: 32px;
-      }
-
-      .contact-eyebrow {
+      .testimonials-eyebrow {
         gap: 8px;
 
-        font-size: 0.66rem;
+        font-size: 0.68rem;
         letter-spacing: 0.16em;
       }
 
-      .contact-eyebrow::before,
-      .contact-eyebrow::after {
+      .testimonials-eyebrow::before,
+      .testimonials-eyebrow::after {
         width: 22px;
       }
 
-      .contact-heading h2 {
-        font-size: clamp(2rem, 10vw, 2.7rem);
+      .testimonials-heading h2 {
+        font-size: clamp(2.05rem, 10vw, 2.7rem);
       }
 
-      .contact-heading p {
-        font-size: 0.9rem;
-        line-height: 1.65;
-      }
+      .testimonials-heading p {
+        padding: 0 10px;
 
-      .contact-content {
-        gap: 20px;
-      }
-
-      .contact-card {
-        border-radius: 18px;
-      }
-
-      .contact-card-body {
-        padding: 25px 20px;
-      }
-
-      .contact-brand {
-        gap: 14px;
-        margin-bottom: 24px;
-      }
-
-      .contact-logo {
-        width: 68px;
-        height: 68px;
-      }
-
-      .contact-brand-name {
-        font-size: 1.35rem;
-      }
-
-      .contact-detail {
-        gap: 10px;
-      }
-
-      .contact-icon {
-        width: 35px;
-        height: 35px;
-      }
-
-      .contact-actions {
-        gap: 8px;
-      }
-
-      .contact-action,
-      .contact-whatsapp {
-        flex: 1 1 auto;
-      }
-
-      .contact-map-card {
-        min-height: 360px;
-
-        border-radius: 18px;
-      }
-
-      .map-wrapper,
-      .map-wrapper iframe {
-        min-height: 360px;
-      }
-    }
-
-    /* =========================================================
-       CELULARES PEQUEÑOS
-       ========================================================= */
-
-    @media (max-width: 420px) {
-
-      .contact-container {
-        padding: 0 13px;
-      }
-
-      .contact-card-body {
-        padding: 22px 17px;
-      }
-
-      .contact-brand {
-        align-items: flex-start;
-      }
-
-      .contact-logo {
-        width: 60px;
-        height: 60px;
-      }
-
-      .contact-brand-name {
-        font-size: 1.22rem;
-      }
-
-      .contact-detail-value {
         font-size: 0.88rem;
       }
 
-      .contact-action,
-      .contact-whatsapp {
-        width: 100%;
-        flex-basis: 100%;
+      /*
+        Una sola opinión por fila en móvil.
+      */
+
+      #testiGrid {
+        grid-template-columns: 1fr;
+
+        gap: 20px;
       }
 
-      .contact-map-card {
-        min-height: 320px;
+      #testiGrid .testimonial-card {
+        min-height: 0;
+
+        border-radius: 17px;
       }
 
-      .map-wrapper,
-      .map-wrapper iframe {
-        min-height: 320px;
+      #testiGrid .testimonial-body {
+        padding: 23px 19px 20px;
       }
 
-      .map-title {
-        top: 12px;
-        left: 12px;
+      #testiGrid .testimonial-body::before {
+        left: 19px;
+      }
 
-        font-size: 0.65rem;
+      #testiGrid .quote-mark {
+        top: 5px;
+        right: 16px;
+
+        font-size: 5rem;
+      }
+
+      #testiGrid .testimonial-rating {
+        margin-bottom: 17px;
+
+        font-size: 1rem;
+      }
+
+      #testiGrid .testimonial-opinion {
+        margin-bottom: 21px;
+
+        font-size: 0.98rem;
+        line-height: 1.72;
+      }
+
+      #testiGrid .testimonial-name {
+        font-size: 0.78rem;
+      }
+    }
+
+    /* =========================================
+       CELULAR PEQUEÑO
+       ========================================= */
+
+    @media (max-width: 420px) {
+
+      .testimonials-heading h2 {
+        font-size: 2rem;
+      }
+
+      #testiGrid {
+        gap: 18px;
+      }
+
+      #testiGrid .testimonial-body {
+        padding: 21px 17px 19px;
+      }
+
+      #testiGrid .testimonial-body::before {
+        left: 17px;
+      }
+
+      #testiGrid .testimonial-opinion {
+        font-size: 0.94rem;
       }
     }
   </style>
@@ -666,64 +587,32 @@
 
   <header class="header"></header>
 
-  <main class="contact-page">
+  <main class="testimonials-page">
 
-    <div class="contact-container">
+    <div class="container">
 
-      <!-- ENCABEZADO -->
-      <section class="contact-heading">
+      <section class="section">
 
-        <div class="contact-eyebrow">
-          El Camarón de Oro
+        <div class="testimonials-heading">
+
+          <span class="testimonials-eyebrow">
+            El Camarón de Oro
+          </span>
+
+          <h2>
+            Lo que dicen nuestros clientes
+          </h2>
+
+          <p>
+            Cada visita deja una experiencia. Conoce las opiniones
+            de quienes han disfrutado de nuestra atención y nuestros sabores.
+          </p>
+
         </div>
 
-        <h2>
-          Contáctanos
-        </h2>
-
-        <p>
-          Estamos listos para atenderte. Encuentra nuestros datos de contacto,
-          horarios y ubicación para visitarnos o comunicarte con nosotros.
-        </p>
+        <div class="grid cols-2" id="testiGrid"></div>
 
       </section>
-
-      <!-- CONTENIDO -->
-      <div class="contact-content">
-
-        <!-- INFORMACIÓN DE CONTACTO -->
-        <section class="contact-card">
-
-          <div
-            class="contact-card-body"
-            id="contactInfo"
-          >
-            <!-- La información se carga dinámicamente desde contacto.js -->
-          </div>
-
-        </section>
-
-        <!-- UBICACIÓN -->
-        <section
-          class="contact-map-card"
-          id="ubicacionSection"
-          style="display: none;"
-        >
-
-          <div class="map-title">
-            Nuestra ubicación
-          </div>
-
-          <div
-            id="mapContainer"
-            class="map-wrapper"
-          >
-            <!-- El mapa se insertará dinámicamente desde contacto.js -->
-          </div>
-
-        </section>
-
-      </div>
 
     </div>
 
@@ -731,11 +620,7 @@
 
   <footer class="footer"></footer>
 
-  <script
-    type="module"
-    src="assets/contacto.js"
-  ></script>
+  <script type="module" src="assets/testimonios.js"></script>
 
 </body>
-
 </html>
