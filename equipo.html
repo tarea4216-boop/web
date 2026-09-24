@@ -3,20 +3,658 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Nuestro Equipo | El Camarón de Oro</title>
+
   <link rel="stylesheet" href="assets/styles.css">
+
+  <style>
+    /* =========================================
+       EQUIPO
+       El Camarón de Oro
+       Diseño premium
+       ========================================= */
+
+    .team-page {
+      position: relative;
+      min-height: calc(100vh - 140px);
+      overflow: hidden;
+
+      background:
+        radial-gradient(
+          circle at 8% 10%,
+          rgba(201, 154, 91, 0.10),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 92% 75%,
+          rgba(201, 154, 91, 0.08),
+          transparent 30%
+        ),
+        var(--cream);
+    }
+
+    /* =========================================
+       DECORACIONES DE FONDO
+       ========================================= */
+
+    .team-page::before {
+      content: "";
+
+      position: absolute;
+      top: 100px;
+      left: -150px;
+
+      width: 350px;
+      height: 350px;
+
+      border: 1px solid rgba(201, 154, 91, 0.12);
+      border-radius: 50%;
+
+      pointer-events: none;
+    }
+
+    .team-page::after {
+      content: "";
+
+      position: absolute;
+      right: -160px;
+      bottom: 80px;
+
+      width: 380px;
+      height: 380px;
+
+      border: 1px solid rgba(201, 154, 91, 0.10);
+      border-radius: 50%;
+
+      pointer-events: none;
+    }
+
+    .team-page .section {
+      position: relative;
+      z-index: 1;
+
+      padding-top: 58px;
+      padding-bottom: 85px;
+    }
+
+    /* =========================================
+       ENCABEZADO
+       ========================================= */
+
+    .team-heading {
+      max-width: 780px;
+      margin: 0 auto 52px;
+
+      text-align: center;
+    }
+
+    .team-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+
+      margin-bottom: 13px;
+
+      color: var(--gold-dark);
+
+      font-family: var(--sans);
+      font-size: 0.75rem;
+      font-weight: 800;
+
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .team-eyebrow::before,
+    .team-eyebrow::after {
+      content: "";
+
+      width: 32px;
+      height: 1px;
+
+      background: var(--gold);
+      opacity: 0.7;
+    }
+
+    .team-heading h2 {
+      margin: 0;
+
+      color: var(--ink);
+
+      font-family: var(--serif);
+      font-size: clamp(2.35rem, 5vw, 3.5rem);
+      font-weight: 700;
+
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .team-heading h2::after {
+      content: "";
+
+      display: block;
+
+      width: 72px;
+      height: 2px;
+
+      margin: 19px auto 17px;
+
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--gold),
+        transparent
+      );
+    }
+
+    .team-heading p {
+      max-width: 590px;
+
+      margin: 0 auto;
+
+      color: rgba(33, 26, 20, 0.67);
+
+      font-family: var(--sans);
+      font-size: 0.96rem;
+      line-height: 1.75;
+    }
+
+    /* =========================================
+       GRID
+       ========================================= */
+
+    #teamGrid {
+      position: relative;
+      z-index: 2;
+
+      align-items: stretch;
+
+      gap: 28px;
+    }
+
+    /* =========================================
+       TARJETA
+       ========================================= */
+
+    #teamGrid .team-card {
+      position: relative;
+
+      display: flex;
+      flex-direction: column;
+
+      height: 100%;
+
+      overflow: hidden;
+
+      background: var(--paper);
+
+      border: 1px solid rgba(201, 154, 91, 0.24);
+      border-radius: 20px;
+
+      box-shadow:
+        0 10px 28px rgba(33, 26, 20, 0.07),
+        0 2px 7px rgba(33, 26, 20, 0.04);
+
+      transition:
+        transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+    }
+
+    #teamGrid .team-card:hover {
+      transform: translateY(-8px);
+
+      border-color: rgba(201, 154, 91, 0.52);
+
+      box-shadow:
+        0 22px 42px rgba(33, 26, 20, 0.13),
+        0 5px 12px rgba(33, 26, 20, 0.06);
+    }
+
+    /* =========================================
+       FOTO
+       ========================================= */
+
+    #teamGrid .team-photo {
+      position: relative;
+
+      overflow: hidden;
+
+      height: 280px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #eee5d8,
+          #dfd0bb
+        );
+    }
+
+    #teamGrid .team-photo img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+
+      transition:
+        transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+        filter 0.5s ease;
+    }
+
+    #teamGrid .team-card:hover .team-photo img {
+      transform: scale(1.06);
+
+      filter: saturate(1.04);
+    }
+
+    /* Capa inferior */
+
+    #teamGrid .team-photo::after {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      background:
+        linear-gradient(
+          to bottom,
+          transparent 55%,
+          rgba(33, 26, 20, 0.35)
+        );
+
+      pointer-events: none;
+    }
+
+    /* =========================================
+       ETIQUETA
+       ========================================= */
+
+    #teamGrid .team-label {
+      position: absolute;
+
+      left: 16px;
+      bottom: 15px;
+
+      z-index: 3;
+
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 7px 11px;
+
+      color: #fff;
+
+      background: rgba(33, 26, 20, 0.80);
+
+      border: 1px solid rgba(232, 201, 154, 0.55);
+      border-radius: 999px;
+
+      font-family: var(--sans);
+      font-size: 0.65rem;
+      font-weight: 800;
+
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+    }
+
+    #teamGrid .team-label::before {
+      content: "✦";
+
+      color: var(--gold-light);
+
+      font-size: 0.72rem;
+    }
+
+    /* =========================================
+       CONTENIDO
+       ========================================= */
+
+    #teamGrid .team-body {
+      position: relative;
+
+      display: flex;
+      flex: 1;
+
+      flex-direction: column;
+
+      padding: 24px 23px 23px;
+    }
+
+    #teamGrid .team-body::before {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: 23px;
+
+      width: 48px;
+      height: 2px;
+
+      background: var(--gold);
+    }
+
+    #teamGrid .team-name {
+      margin: 0 0 7px;
+
+      color: var(--ink);
+
+      font-family: var(--serif);
+      font-size: 1.45rem;
+      font-weight: 700;
+
+      line-height: 1.2;
+    }
+
+    #teamGrid .team-position {
+      margin-bottom: 15px;
+
+      color: var(--gold-dark);
+
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      font-weight: 800;
+
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    #teamGrid .team-divider {
+      width: 100%;
+      height: 1px;
+
+      margin-bottom: 16px;
+
+      background:
+        linear-gradient(
+          90deg,
+          rgba(201, 154, 91, 0.35),
+          rgba(201, 154, 91, 0.08),
+          transparent
+        );
+    }
+
+    #teamGrid .team-description {
+      color: rgba(33, 26, 20, 0.69);
+
+      font-family: var(--sans);
+      font-size: 0.9rem;
+
+      line-height: 1.75;
+    }
+
+    /* =========================================
+       EFECTO DE BRILLO
+       ========================================= */
+
+    #teamGrid .team-card::before {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: -120%;
+
+      width: 70%;
+      height: 100%;
+
+      z-index: 5;
+
+      pointer-events: none;
+
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.15),
+        transparent
+      );
+
+      transform: skewX(-18deg);
+
+      transition: left 0.8s ease;
+    }
+
+    #teamGrid .team-card:hover::before {
+      left: 150%;
+    }
+
+    /* =========================================
+       SIN FOTO
+       ========================================= */
+
+    #teamGrid .team-card.no-photo {
+      justify-content: center;
+    }
+
+    #teamGrid .team-card.no-photo .team-body {
+      min-height: 230px;
+      justify-content: center;
+    }
+
+    /* =========================================
+       SIN EQUIPO
+       ========================================= */
+
+    #teamGrid > .muted {
+      grid-column: 1 / -1;
+
+      padding: 55px 25px;
+
+      text-align: center;
+
+      color: var(--gold-dark);
+
+      background: rgba(255, 250, 242, 0.65);
+
+      border: 1px dashed rgba(201, 154, 91, 0.35);
+      border-radius: 16px;
+
+      font-family: var(--sans);
+    }
+
+    /* =========================================
+       TABLET
+       ========================================= */
+
+    @media (max-width: 900px) {
+
+      .team-page .section {
+        padding-top: 45px;
+        padding-bottom: 70px;
+      }
+
+      .team-heading {
+        margin-bottom: 42px;
+      }
+
+      #teamGrid {
+        gap: 22px;
+      }
+
+      #teamGrid .team-photo {
+        height: 240px;
+      }
+
+      #teamGrid .team-body {
+        padding: 21px 19px 20px;
+      }
+
+      #teamGrid .team-body::before {
+        left: 19px;
+      }
+
+      #teamGrid .team-name {
+        font-size: 1.3rem;
+      }
+    }
+
+    /* =========================================
+       CELULAR
+       ========================================= */
+
+    @media (max-width: 700px) {
+
+      .team-page .section {
+        padding-top: 36px;
+        padding-bottom: 55px;
+      }
+
+      .team-heading {
+        margin-bottom: 35px;
+      }
+
+      .team-eyebrow {
+        gap: 8px;
+
+        font-size: 0.68rem;
+        letter-spacing: 0.16em;
+      }
+
+      .team-eyebrow::before,
+      .team-eyebrow::after {
+        width: 22px;
+      }
+
+      .team-heading h2 {
+        font-size: clamp(2.15rem, 10vw, 2.8rem);
+      }
+
+      .team-heading p {
+        padding: 0 10px;
+
+        font-size: 0.88rem;
+      }
+
+      /*
+        Una sola tarjeta por fila.
+        Esto evita que los perfiles queden
+        demasiado pequeños en teléfonos.
+      */
+
+      #teamGrid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+
+      #teamGrid .team-card {
+        width: 100%;
+
+        border-radius: 17px;
+      }
+
+      #teamGrid .team-photo {
+        height: 250px;
+      }
+
+      #teamGrid .team-body {
+        padding: 21px 19px 20px;
+      }
+
+      #teamGrid .team-body::before {
+        left: 19px;
+      }
+
+      #teamGrid .team-name {
+        font-size: 1.32rem;
+      }
+
+      #teamGrid .team-position {
+        font-size: 0.67rem;
+      }
+
+      #teamGrid .team-description {
+        font-size: 0.88rem;
+        line-height: 1.72;
+      }
+
+      #teamGrid .team-label {
+        left: 13px;
+        bottom: 13px;
+
+        padding: 6px 10px;
+
+        font-size: 0.61rem;
+      }
+    }
+
+    /* =========================================
+       CELULAR PEQUEÑO
+       ========================================= */
+
+    @media (max-width: 420px) {
+
+      .team-heading h2 {
+        font-size: 2.05rem;
+      }
+
+      #teamGrid {
+        gap: 18px;
+      }
+
+      #teamGrid .team-photo {
+        height: 220px;
+      }
+
+      #teamGrid .team-body {
+        padding: 19px 17px 18px;
+      }
+
+      #teamGrid .team-body::before {
+        left: 17px;
+      }
+
+      #teamGrid .team-name {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
   <header class="header"></header>
-  <main class="container">
-    
-<section class="section">
-  <h2>Equipo</h2>
-  <div class="grid cols-3" id="teamGrid"></div>
-</section>
+
+  <main class="team-page">
+
+    <div class="container">
+
+      <section class="section">
+
+        <div class="team-heading">
+
+          <span class="team-eyebrow">
+            El Camarón de Oro
+          </span>
+
+          <h2>
+            Nuestro Equipo
+          </h2>
+
+          <p>
+            Conoce a las personas que forman parte de
+            El Camarón de Oro y hacen posible cada experiencia.
+          </p>
+
+        </div>
+
+        <div class="grid cols-3" id="teamGrid"></div>
+
+      </section>
+
+    </div>
 
   </main>
+
   <footer class="footer"></footer>
+
   <script type="module" src="assets/equipo.js"></script>
+
 </body>
 </html>
