@@ -69,11 +69,13 @@ async function cargarLogoEmpresa() {
 // ======================================================
 
 async function renderMasVendidos() {
+
   const grid = document.getElementById('destGrid');
 
   if (!grid) return;
 
   try {
+
     grid.innerHTML =
       "<p class='muted'>Cargando productos destacados...</p>";
 
@@ -88,11 +90,13 @@ async function renderMasVendidos() {
     const contador = new Map();
 
     (ventas || []).forEach(venta => {
+
       const items = Array.isArray(venta.productos)
         ? venta.productos
         : [];
 
       items.forEach(item => {
+
         const clave = item.id || item.nombre || 'Desconocido';
         const cantidad = Number(item.qty) || 1;
 
@@ -100,7 +104,9 @@ async function renderMasVendidos() {
           clave,
           (contador.get(clave) || 0) + cantidad
         );
+
       });
+
     });
 
     // 3. Obtener catálogo
@@ -109,24 +115,41 @@ async function renderMasVendidos() {
     // 4. Asociar conteo y ordenar
     const productosOrdenados = (productos || [])
       .map(producto => ({
+
         ...producto,
+
         ventas:
           contador.get(producto.id) ||
           contador.get(producto.nombre) ||
           0
+
       }))
       .sort((a, b) => b.ventas - a.ventas)
       .slice(0, 6);
 
     // 5. Mostrar resultados
     if (!productosOrdenados.length) {
+
       grid.innerHTML =
         "<p class='muted'>No hay productos disponibles.</p>";
+
       return;
     }
 
-    grid.innerHTML = productosOrdenados.map(producto => `
+    // Frases según la posición de popularidad
+    const frasesPopularidad = [
+      '🏆 El favorito de nuestros clientes',
+      '⭐ Muy elegido por nuestros clientes',
+      '✨ Una elección que encanta',
+      '🍽️ Muy recomendado',
+      '💛 Uno de nuestros favoritos',
+      '👨‍🍳 Recomendado por la casa'
+    ];
+
+    grid.innerHTML = productosOrdenados.map((producto, index) => `
+
       <article class="card fadeIn">
+
         ${
           producto.imagen_url
             ? `<img
@@ -138,6 +161,7 @@ async function renderMasVendidos() {
         }
 
         <div class="body">
+
           <div class="title">
             ${producto.nombre || ''}
           </div>
@@ -151,11 +175,13 @@ async function renderMasVendidos() {
           </div>
 
           <div class="badge">
-            ${producto.ventas}
-            ${producto.ventas === 1 ? 'venta' : 'ventas'}
+            ${frasesPopularidad[index]}
           </div>
+
         </div>
+
       </article>
+
     `).join('');
 
     console.log(
@@ -164,6 +190,7 @@ async function renderMasVendidos() {
     );
 
   } catch (error) {
+
     console.error(
       '❌ Error al cargar los productos más vendidos:',
       error
@@ -176,8 +203,10 @@ async function renderMasVendidos() {
       'Error al cargar productos destacados',
       'error'
     );
+
   }
 }
+
 
 // ======================================================
 // ACTUALIZACIÓN EN TIEMPO REAL
