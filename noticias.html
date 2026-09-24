@@ -3,20 +3,522 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Noticias | El Camarón de Oro</title>
+
   <link rel="stylesheet" href="assets/styles.css">
+
+  <style>
+    /* =========================================================
+       PÁGINA DE NOTICIAS
+       ========================================================= */
+
+    .news-page {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      padding: 20px 0 70px;
+
+      background:
+        radial-gradient(circle at 8% 12%, rgba(201, 154, 91, 0.13), transparent 24%),
+        radial-gradient(circle at 92% 78%, rgba(232, 201, 154, 0.16), transparent 26%),
+        var(--cream);
+    }
+
+    /* Elementos decorativos */
+
+    .news-page::before,
+    .news-page::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .news-page::before {
+      width: 260px;
+      height: 260px;
+      top: 70px;
+      right: -130px;
+      border: 1px solid rgba(201, 154, 91, 0.20);
+    }
+
+    .news-page::after {
+      width: 190px;
+      height: 190px;
+      bottom: 90px;
+      left: -95px;
+      border: 1px solid rgba(201, 154, 91, 0.16);
+    }
+
+    .news-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* =========================================================
+       ENCABEZADO
+       ========================================================= */
+
+    .news-heading {
+      max-width: 820px;
+      margin: 0 auto 48px;
+      text-align: center;
+    }
+
+    .news-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+
+      margin-bottom: 12px;
+
+      color: var(--gold-dark);
+      font-family: var(--sans);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .news-eyebrow::before,
+    .news-eyebrow::after {
+      content: "";
+      width: 34px;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    .news-heading h2 {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 5vw, 3.7rem);
+      font-weight: 700;
+      line-height: 1.05;
+    }
+
+    .news-heading h2::after {
+      content: "";
+      display: block;
+
+      width: 70px;
+      height: 3px;
+
+      margin: 18px auto 20px;
+
+      border-radius: 10px;
+      background: linear-gradient(
+        90deg,
+        var(--gold-dark),
+        var(--gold-light),
+        var(--gold-dark)
+      );
+    }
+
+    .news-heading p {
+      max-width: 680px;
+      margin: 0 auto;
+
+      color: rgba(33, 26, 20, 0.68);
+      font-family: var(--sans);
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+
+    /* =========================================================
+       GRID
+       ========================================================= */
+
+    #newsGrid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    /* =========================================================
+       TARJETA
+       ========================================================= */
+
+    .news-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+
+      min-width: 0;
+      overflow: hidden;
+
+      border: 1px solid rgba(201, 154, 91, 0.26);
+      border-radius: 20px;
+
+      background: rgba(255, 250, 242, 0.94);
+
+      box-shadow:
+        0 12px 35px rgba(33, 26, 20, 0.07),
+        0 2px 8px rgba(33, 26, 20, 0.04);
+
+      transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+    }
+
+    .news-card:hover {
+      transform: translateY(-7px);
+
+      border-color: rgba(201, 154, 91, 0.52);
+
+      box-shadow:
+        0 20px 45px rgba(33, 26, 20, 0.12),
+        0 5px 12px rgba(33, 26, 20, 0.06);
+    }
+
+    /* Brillo sutil */
+
+    .news-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+
+      background: linear-gradient(
+        115deg,
+        transparent 35%,
+        rgba(255, 255, 255, 0.34) 50%,
+        transparent 65%
+      );
+
+      transform: translateX(-120%);
+      transition: transform 0.7s ease;
+
+      pointer-events: none;
+    }
+
+    .news-card:hover::after {
+      transform: translateX(120%);
+    }
+
+    /* =========================================================
+       IMAGEN
+       ========================================================= */
+
+    .news-image {
+      position: relative;
+      height: 245px;
+      overflow: hidden;
+      background: var(--ink);
+    }
+
+    .news-image img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+
+      transition: transform 0.6s ease;
+    }
+
+    .news-card:hover .news-image img {
+      transform: scale(1.06);
+    }
+
+    /* Degradado sobre imagen */
+
+    .news-image::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+
+      background: linear-gradient(
+        to top,
+        rgba(33, 26, 20, 0.48),
+        transparent 55%
+      );
+
+      pointer-events: none;
+    }
+
+    .news-label {
+      position: absolute;
+      left: 18px;
+      bottom: 16px;
+      z-index: 2;
+
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+
+      padding: 7px 12px;
+
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+
+      background: rgba(33, 26, 20, 0.72);
+      color: #fffaf2;
+
+      backdrop-filter: blur(8px);
+
+      font-family: var(--sans);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .news-label::before {
+      content: "✦";
+      color: var(--gold-light);
+    }
+
+    /* =========================================================
+       CONTENIDO
+       ========================================================= */
+
+    .news-body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+
+      padding: 25px 25px 27px;
+    }
+
+    .news-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+
+      margin-bottom: 11px;
+
+      color: var(--gold-dark);
+
+      font-family: var(--sans);
+      font-size: 0.73rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.5;
+    }
+
+    .news-meta .separator {
+      color: rgba(148, 108, 62, 0.55);
+    }
+
+    .news-title {
+      margin: 0 0 14px;
+
+      color: var(--ink);
+      font-family: var(--serif);
+      font-size: 1.55rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .news-divider {
+      width: 42px;
+      height: 2px;
+
+      margin-bottom: 16px;
+
+      border-radius: 10px;
+      background: var(--gold);
+    }
+
+    .news-content {
+      color: rgba(33, 26, 20, 0.72);
+
+      font-family: var(--sans);
+      font-size: 0.94rem;
+      line-height: 1.75;
+
+      overflow-wrap: anywhere;
+    }
+
+    /* Noticia sin imagen */
+
+    .news-card.no-image .news-body {
+      padding-top: 30px;
+    }
+
+    /* =========================================================
+       ESTADO VACÍO / ERROR
+       ========================================================= */
+
+    .news-empty {
+      grid-column: 1 / -1;
+
+      padding: 50px 25px;
+
+      border: 1px dashed rgba(201, 154, 91, 0.45);
+      border-radius: 18px;
+
+      color: rgba(33, 26, 20, 0.62);
+
+      text-align: center;
+      font-family: var(--sans);
+    }
+
+    /* =========================================================
+       TABLET
+       ========================================================= */
+
+    @media (max-width: 950px) {
+      .news-container {
+        padding: 0 20px;
+      }
+
+      #newsGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+      }
+
+      .news-image {
+        height: 225px;
+      }
+    }
+
+    /* =========================================================
+       CELULARES
+       ========================================================= */
+
+    @media (max-width: 700px) {
+      .news-page {
+        padding: 10px 0 50px;
+      }
+
+      .news-container {
+        padding: 0 16px;
+      }
+
+      .news-heading {
+        margin-bottom: 34px;
+      }
+
+      .news-eyebrow {
+        gap: 8px;
+        font-size: 0.66rem;
+        letter-spacing: 0.16em;
+      }
+
+      .news-eyebrow::before,
+      .news-eyebrow::after {
+        width: 22px;
+      }
+
+      .news-heading h2 {
+        font-size: clamp(2rem, 10vw, 2.7rem);
+      }
+
+      .news-heading p {
+        font-size: 0.9rem;
+        line-height: 1.65;
+      }
+
+      #newsGrid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+
+      .news-card:hover {
+        transform: none;
+      }
+
+      .news-image {
+        height: 235px;
+      }
+
+      .news-body {
+        padding: 22px 20px 24px;
+      }
+
+      .news-title {
+        font-size: 1.4rem;
+      }
+
+      .news-content {
+        font-size: 0.92rem;
+      }
+    }
+
+    /* =========================================================
+       CELULARES PEQUEÑOS
+       ========================================================= */
+
+    @media (max-width: 420px) {
+      .news-container {
+        padding: 0 13px;
+      }
+
+      .news-heading {
+        margin-bottom: 28px;
+      }
+
+      .news-heading h2 {
+        font-size: 2rem;
+      }
+
+      .news-image {
+        height: 210px;
+      }
+
+      .news-body {
+        padding: 20px 17px 22px;
+      }
+
+      .news-title {
+        font-size: 1.3rem;
+      }
+
+      .news-content {
+        font-size: 0.9rem;
+        line-height: 1.7;
+      }
+
+      .news-label {
+        left: 13px;
+        bottom: 13px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
   <header class="header"></header>
-  <main class="container">
-    
-<section class="section">
-  <h2>Noticias y Blog</h2>
-  <div class="grid cols-3" id="newsGrid"></div>
-</section>
+
+  <main class="news-page">
+
+    <div class="news-container">
+
+      <section class="news-section">
+
+        <div class="news-heading">
+          <div class="news-eyebrow">El Camarón de Oro</div>
+
+          <h2>Noticias y Blog</h2>
+
+          <p>
+            Descubre nuestras novedades, historias y momentos especiales
+            que forman parte de la experiencia de El Camarón de Oro.
+          </p>
+        </div>
+
+        <div id="newsGrid"></div>
+
+      </section>
+
+    </div>
 
   </main>
+
   <footer class="footer"></footer>
+
   <script type="module" src="assets/noticias.js"></script>
+
 </body>
 </html>
