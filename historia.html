@@ -3,20 +3,612 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Nuestra Historia | El Camarón de Oro</title>
+
   <link rel="stylesheet" href="assets/styles.css">
+
+  <style>
+    /* =========================================
+       HISTORIA
+       El Camarón de Oro
+       Diseño editorial / restaurante premium
+       ========================================= */
+
+    .history-page {
+      position: relative;
+      min-height: calc(100vh - 140px);
+      overflow: hidden;
+
+      background:
+        radial-gradient(
+          circle at 8% 12%,
+          rgba(201, 154, 91, 0.10),
+          transparent 27%
+        ),
+        radial-gradient(
+          circle at 92% 70%,
+          rgba(201, 154, 91, 0.08),
+          transparent 30%
+        ),
+        var(--cream);
+    }
+
+    /* Decoraciones ambientales */
+
+    .history-page::before {
+      content: "";
+      position: absolute;
+
+      top: 130px;
+      left: -150px;
+
+      width: 360px;
+      height: 360px;
+
+      border: 1px solid rgba(201, 154, 91, 0.12);
+      border-radius: 50%;
+
+      pointer-events: none;
+    }
+
+    .history-page::after {
+      content: "";
+      position: absolute;
+
+      right: -170px;
+      bottom: 100px;
+
+      width: 390px;
+      height: 390px;
+
+      border: 1px solid rgba(201, 154, 91, 0.10);
+      border-radius: 50%;
+
+      pointer-events: none;
+    }
+
+    .history-page .section {
+      position: relative;
+      z-index: 1;
+
+      padding-top: 58px;
+      padding-bottom: 90px;
+    }
+
+    /* =========================================
+       ENCABEZADO
+       ========================================= */
+
+    .history-heading {
+      max-width: 780px;
+      margin: 0 auto 60px;
+
+      text-align: center;
+    }
+
+    .history-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+
+      margin-bottom: 13px;
+
+      color: var(--gold-dark);
+
+      font-family: var(--sans);
+      font-size: 0.75rem;
+      font-weight: 800;
+
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .history-eyebrow::before,
+    .history-eyebrow::after {
+      content: "";
+
+      width: 32px;
+      height: 1px;
+
+      background: var(--gold);
+      opacity: 0.7;
+    }
+
+    .history-heading h2 {
+      margin: 0;
+
+      color: var(--ink);
+
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 700;
+
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .history-heading h2::after {
+      content: "";
+
+      display: block;
+
+      width: 72px;
+      height: 2px;
+
+      margin: 19px auto 18px;
+
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--gold),
+        transparent
+      );
+    }
+
+    .history-heading p {
+      max-width: 590px;
+
+      margin: 0 auto;
+
+      color: rgba(33, 26, 20, 0.66);
+
+      font-family: var(--sans);
+      font-size: 0.96rem;
+      line-height: 1.75;
+    }
+
+    /* =========================================
+       CONTENEDOR DE HISTORIA
+       ========================================= */
+
+    #histWrap {
+      position: relative;
+
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Línea central */
+
+    #histWrap::before {
+      content: "";
+
+      position: absolute;
+
+      top: 20px;
+      bottom: 20px;
+      left: 50%;
+
+      width: 1px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          transparent,
+          rgba(201, 154, 91, 0.55) 8%,
+          rgba(201, 154, 91, 0.55) 92%,
+          transparent
+        );
+
+      transform: translateX(-50%);
+    }
+
+    /* =========================================
+       ELEMENTO HISTÓRICO
+       ========================================= */
+
+    #histWrap .history-item {
+      position: relative;
+
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 70px;
+
+      margin-bottom: 75px;
+    }
+
+    #histWrap .history-item:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Alternancia */
+
+    #histWrap .history-item:nth-child(even) {
+      direction: rtl;
+    }
+
+    #histWrap .history-item:nth-child(even) > * {
+      direction: ltr;
+    }
+
+    /* =========================================
+       PUNTO CENTRAL
+       ========================================= */
+
+    #histWrap .history-dot {
+      position: absolute;
+
+      top: 34px;
+      left: 50%;
+
+      z-index: 4;
+
+      width: 13px;
+      height: 13px;
+
+      background: var(--paper);
+
+      border: 3px solid var(--gold);
+
+      border-radius: 50%;
+
+      box-shadow:
+        0 0 0 6px rgba(201, 154, 91, 0.10),
+        0 4px 10px rgba(33, 26, 20, 0.10);
+
+      transform: translateX(-50%);
+    }
+
+    /* =========================================
+       IMAGEN
+       ========================================= */
+
+    #histWrap .history-image {
+      position: relative;
+
+      overflow: hidden;
+
+      min-height: 310px;
+
+      background: #e9dfd1;
+
+      border-radius: 20px;
+
+      border: 1px solid rgba(201, 154, 91, 0.25);
+
+      box-shadow:
+        0 12px 30px rgba(33, 26, 20, 0.09),
+        0 2px 7px rgba(33, 26, 20, 0.04);
+    }
+
+    #histWrap .history-image img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+      min-height: 310px;
+
+      object-fit: cover;
+
+      transition:
+        transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+        filter 0.5s ease;
+    }
+
+    #histWrap .history-item:hover .history-image img {
+      transform: scale(1.05);
+      filter: saturate(1.04);
+    }
+
+    /* Capa decorativa */
+
+    #histWrap .history-image::after {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(33, 26, 20, 0.02),
+          transparent 55%,
+          rgba(33, 26, 20, 0.20)
+        );
+
+      pointer-events: none;
+    }
+
+    /* =========================================
+       CONTENIDO
+       ========================================= */
+
+    #histWrap .history-content {
+      align-self: center;
+
+      padding: 25px 20px;
+    }
+
+    #histWrap .history-content::before {
+      content: "NUESTRA HISTORIA";
+
+      display: block;
+
+      margin-bottom: 13px;
+
+      color: var(--gold-dark);
+
+      font-family: var(--sans);
+      font-size: 0.68rem;
+      font-weight: 800;
+
+      letter-spacing: 0.18em;
+    }
+
+    #histWrap .history-title {
+      position: relative;
+
+      margin: 0 0 19px;
+
+      padding-bottom: 17px;
+
+      color: var(--ink);
+
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 3vw, 2.35rem);
+      font-weight: 700;
+
+      line-height: 1.18;
+    }
+
+    #histWrap .history-title::after {
+      content: "";
+
+      position: absolute;
+
+      bottom: 0;
+      left: 0;
+
+      width: 52px;
+      height: 2px;
+
+      background: var(--gold);
+    }
+
+    #histWrap .history-text {
+      color: rgba(33, 26, 20, 0.72);
+
+      font-family: var(--sans);
+      font-size: 0.96rem;
+
+      line-height: 1.85;
+    }
+
+    #histWrap .history-text p {
+      margin: 0 0 12px;
+    }
+
+    #histWrap .history-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* =========================================
+       CUANDO NO HAY IMAGEN
+       ========================================= */
+
+    #histWrap .history-item.no-image {
+      display: block;
+
+      max-width: 760px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #histWrap .history-item.no-image .history-content {
+      text-align: center;
+    }
+
+    #histWrap .history-item.no-image .history-title::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* =========================================
+       SIN HISTORIA
+       ========================================= */
+
+    #histWrap > .muted {
+      position: relative;
+      z-index: 2;
+
+      padding: 55px 25px;
+
+      text-align: center;
+
+      color: var(--gold-dark);
+
+      background: rgba(255, 250, 242, 0.65);
+
+      border: 1px dashed rgba(201, 154, 91, 0.35);
+      border-radius: 16px;
+
+      font-family: var(--sans);
+    }
+
+    /* =========================================
+       TABLET
+       ========================================= */
+
+    @media (max-width: 900px) {
+
+      .history-page .section {
+        padding-top: 45px;
+        padding-bottom: 70px;
+      }
+
+      .history-heading {
+        margin-bottom: 45px;
+      }
+
+      #histWrap .history-item {
+        gap: 45px;
+      }
+
+      #histWrap .history-image,
+      #histWrap .history-image img {
+        min-height: 270px;
+      }
+
+      #histWrap .history-content {
+        padding: 15px 10px;
+      }
+    }
+
+    /* =========================================
+       MÓVIL
+       ========================================= */
+
+    @media (max-width: 700px) {
+
+      .history-page .section {
+        padding-top: 36px;
+        padding-bottom: 55px;
+      }
+
+      .history-heading {
+        margin-bottom: 38px;
+      }
+
+      .history-eyebrow {
+        gap: 8px;
+
+        font-size: 0.68rem;
+        letter-spacing: 0.16em;
+      }
+
+      .history-eyebrow::before,
+      .history-eyebrow::after {
+        width: 22px;
+      }
+
+      .history-heading h2 {
+        font-size: clamp(2.15rem, 10vw, 2.8rem);
+      }
+
+      .history-heading p {
+        padding: 0 10px;
+
+        font-size: 0.88rem;
+      }
+
+      /* Quitamos la línea central en móvil */
+
+      #histWrap::before {
+        display: none;
+      }
+
+      #histWrap .history-item {
+        display: block;
+
+        margin-bottom: 45px;
+      }
+
+      #histWrap .history-item:nth-child(even) {
+        direction: ltr;
+      }
+
+      #histWrap .history-dot {
+        display: none;
+      }
+
+      #histWrap .history-image {
+        min-height: 230px;
+
+        border-radius: 17px;
+      }
+
+      #histWrap .history-image img {
+        min-height: 230px;
+      }
+
+      #histWrap .history-content {
+        padding: 22px 5px 5px;
+      }
+
+      #histWrap .history-content::before {
+        margin-bottom: 10px;
+
+        font-size: 0.64rem;
+      }
+
+      #histWrap .history-title {
+        margin-bottom: 16px;
+
+        font-size: 1.75rem;
+      }
+
+      #histWrap .history-text {
+        font-size: 0.9rem;
+        line-height: 1.78;
+      }
+    }
+
+    /* =========================================
+       MÓVIL PEQUEÑO
+       ========================================= */
+
+    @media (max-width: 420px) {
+
+      .history-heading h2 {
+        font-size: 2.05rem;
+      }
+
+      #histWrap .history-image,
+      #histWrap .history-image img {
+        min-height: 205px;
+      }
+
+      #histWrap .history-content {
+        padding-top: 19px;
+      }
+
+      #histWrap .history-title {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
   <header class="header"></header>
-  <main class="container">
-    
-<section class="section">
-  <h2>Historia</h2>
-  <div id="histWrap"></div>
-</section>
+
+  <main class="history-page">
+
+    <div class="container">
+
+      <section class="section">
+
+        <div class="history-heading">
+
+          <span class="history-eyebrow">
+            El Camarón de Oro
+          </span>
+
+          <h2>
+            Nuestra Historia
+          </h2>
+
+          <p>
+            Conoce el camino, los momentos y las experiencias
+            que forman parte de la historia de El Camarón de Oro.
+          </p>
+
+        </div>
+
+        <div id="histWrap"></div>
+
+      </section>
+
+    </div>
 
   </main>
+
   <footer class="footer"></footer>
+
   <script type="module" src="assets/historia.js"></script>
+
 </body>
 </html>
