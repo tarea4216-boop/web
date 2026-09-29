@@ -59,37 +59,52 @@ window.initPagoVerificar = async function () {
     selectedFile = e.target.files[0];
   });
 
-  // =========================================================
-  // === DATOS DEL PEDIDO
-  // =========================================================
+ // =========================================================
+// === DATOS DEL PEDIDO
+// =========================================================
 
-  const pedidoId =
-    qrContainer.dataset.pedidoId ||
-    `pedido-${Date.now()}`;
+const pedidoId =
+  qrContainer.dataset.pedidoId ||
+  `pedido-${Date.now()}`;
 
-  const totalPedido =
-    parseFloat(qrContainer.dataset.total || "0");
+const totalPedido =
+  parseFloat(qrContainer.dataset.total || "0");
 
-  const carrito =
-    JSON.parse(qrContainer.dataset.cart || "[]");
+const carrito =
+  JSON.parse(qrContainer.dataset.cart || "[]");
 
-  const lat =
-    parseFloat(qrContainer.dataset.lat);
+const lat =
+  parseFloat(qrContainer.dataset.lat);
 
-  const lng =
-    parseFloat(qrContainer.dataset.lng);
+const lng =
+  parseFloat(qrContainer.dataset.lng);
 
-  const clienteNombre =
-    qrContainer.dataset.nombre || "Sin nombre";
+const clienteNombre =
+  qrContainer.dataset.nombre || "Sin nombre";
 
-  const clienteCelular =
-    qrContainer.dataset.celular || "Sin celular";
+// Nuevo: tipo de contacto elegido por el cliente
+const clienteTipoContacto =
+  qrContainer.dataset.tipoContacto || "celular";
+  
+const nombreTipoContacto =
+  clienteTipoContacto === "whatsapp"
+    ? "Usuario de WhatsApp"
+    : "Celular";
+// Nuevo: número de celular o usuario de WhatsApp
+const clienteContacto =
+  qrContainer.dataset.contacto ||
+  qrContainer.dataset.celular ||
+  "Sin contacto";
 
-  const clienteReferencia =
-    qrContainer.dataset.referencia || "";
+// Se conserva para compatibilidad con el sistema anterior
+const clienteCelular =
+  qrContainer.dataset.celular || "";
 
-  const clienteUid =
-    qrContainer.dataset.uid || "anónimo";
+const clienteReferencia =
+  qrContainer.dataset.referencia || "";
+
+const clienteUid =
+  qrContainer.dataset.uid || "anónimo";
 
 
   // =========================================================
@@ -137,52 +152,63 @@ window.initPagoVerificar = async function () {
 
 
   // =========================================================
-  // === GUARDAR PEDIDO PENDIENTE
-  // =========================================================
+// === GUARDAR PEDIDO PENDIENTE
+// =========================================================
 
-  async function guardarPedidoPendiente(token) {
+async function guardarPedidoPendiente(token) {
 
-    const ref =
-      db
-        .ref("pedidosPendientesValidacion")
-        .child(`validacion-${token}`);
+  const ref = db
+    .ref("pedidosPendientesValidacion")
+    .child(`validacion-${token}`);
 
-    await ref.set({
+  await ref.set({
 
-      token,
+    token,
 
-      idTemporal: clienteUid,
+    idTemporal: clienteUid,
 
-      total: totalPedido,
+    total: totalPedido,
 
-      estado: "esperando_admin",
+    estado: "esperando_admin",
 
-      tipo_pedido: "online",
+    tipo_pedido: "online",
 
-      cliente: {
-        uid: clienteUid,
-        nombre: clienteNombre,
-        celular: clienteCelular,
-        referencia: clienteReferencia
-      },
+    cliente: {
 
-      creadoEn: Date.now(),
+      uid: clienteUid,
 
-      ubicacion: {
-        lat,
-        lng
-      },
+      nombre: clienteNombre,
 
-      items: carrito,
+      // Nuevo sistema de contacto
+      tipoContacto: clienteTipoContacto,
+      contacto: clienteContacto,
 
-      metodo_pago: "Yape/BCP"
-    });
+      // Se conserva para compatibilidad
+      celular: clienteCelular,
 
-    console.log(
-      "📦 Pedido guardado en pedidosPendientesValidacion:",
-      token
-    );
-  }
+      referencia: clienteReferencia
+
+    },
+
+    creadoEn: Date.now(),
+
+    ubicacion: {
+      lat,
+      lng
+    },
+
+    items: carrito,
+
+    metodo_pago: "Yape/BCP"
+
+  });
+
+  console.log(
+    "📦 Pedido guardado en pedidosPendientesValidacion:",
+    token
+  );
+
+}
 
 
   // =========================================================
@@ -2143,21 +2169,22 @@ text =
           tipo_pedido:
             "online",
 
-          cliente: {
+ cliente: {
 
-            uid:
-              clienteUid,
+  uid: clienteUid,
 
-            nombre:
-              clienteNombre,
+  nombre: clienteNombre,
 
-            celular:
-              clienteCelular,
+  // Nuevo sistema de contacto
+  tipoContacto: clienteTipoContacto,
+  contacto: clienteContacto,
 
-            referencia:
-              clienteReferencia
-          },
+  // Se conserva para compatibilidad
+  celular: clienteCelular,
 
+  referencia: clienteReferencia
+
+},
           creadoEn:
             Date.now(),
 
@@ -2413,18 +2440,14 @@ text =
         doc.setFontSize(12);
 
 
-        const secciones = [
 
-          `ID Pedido: ${pedidoId}`,
-
-          `Fecha: ${
-            new Date().toLocaleString()
-          }`,
-
-          `Cliente: ${clienteNombre}`,
-
-          `Celular: ${clienteCelular}`
-        ];
+const secciones = [
+  `ID Pedido: ${pedidoId}`,
+  `Fecha: ${new Date().toLocaleString()}`,
+  `Cliente: ${clienteNombre}`,
+  `Medio de contacto: ${nombreTipoContacto}`,
+  `Contacto: ${clienteContacto}`
+];
 
 
         if (clienteReferencia) {
@@ -2685,12 +2708,16 @@ text =
 
           <p>
             <b>Cliente:</b>
-            ${clienteNombre}
-            <br>
+${clienteNombre}
+<br>
 
-            <b>Celular:</b>
-            ${clienteCelular}
-            <br>
+<b>Medio de contacto:</b>
+${nombreTipoContacto}
+<br>
+
+<b>Contacto:</b>
+${clienteContacto}
+<br>
 
             <b>Referencia:</b>
             ${clienteReferencia || "—"}
@@ -2801,9 +2828,14 @@ ${carrito
 S/ ${totalPedido.toFixed(2)}
 
 👤 Cliente:
+
 ${clienteNombre}
 
-📱 ${clienteCelular}
+📞 Medio de contacto:
+${nombreTipoContacto}
+
+💬 Contacto:
+${clienteContacto}
 
 🏠 ${clienteReferencia || "Sin referencia"}
 
@@ -2884,13 +2916,17 @@ ${adminLink}
                   </p>
 
                   <p>
-                    <b>Cliente:</b>
-                    ${clienteNombre}
-                    <br>
+                 <b>Cliente:</b>
+${clienteNombre}
+<br>
 
-                    <b>Celular:</b>
-                    ${clienteCelular}
-                    <br>
+<b>Medio de contacto:</b>
+${nombreTipoContacto}
+<br>
+
+<b>Contacto:</b>
+${clienteContacto}
+<br>
 
                     <b>Referencia:</b>
                     ${clienteReferencia || "—"}
