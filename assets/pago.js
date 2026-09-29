@@ -460,7 +460,7 @@ const polygon =
       );
 
 
-      // =================================================
+          // =================================================
       // FORMULARIO
       // =================================================
 
@@ -484,15 +484,46 @@ const polygon =
             id="cliente-nombre"
             placeholder="👤 Nombre completo"
             class="input"
+            autocomplete="name"
+            required
           >
+
+          <label for="tipo-contacto">
+            ¿Cómo podemos contactarte?
+          </label>
+
+          <select
+            id="tipo-contacto"
+            class="input"
+            required
+          >
+
+            <option value="celular">
+              Número de celular
+            </option>
+
+            <option value="whatsapp">
+              Usuario de WhatsApp
+            </option>
+
+          </select>
 
           <input
             type="tel"
-            id="cliente-celular"
-            placeholder="📱 Número de celular"
+            id="cliente-contacto"
+            placeholder="📱 Número de celular (9 dígitos)"
             maxlength="9"
             class="input"
+            autocomplete="tel"
+            required
           >
+
+          <small
+            id="contacto-ayuda"
+            style="color:#666;"
+          >
+            Ingresa tu número de celular de 9 dígitos.
+          </small>
 
           <textarea
             id="cliente-referencia"
@@ -511,6 +542,76 @@ const polygon =
         </div>
 
       `;
+
+
+      // =================================================
+      // CAMBIAR CAMPO SEGÚN EL TIPO DE CONTACTO
+      // =================================================
+
+      const tipoContactoInput =
+        document.getElementById(
+          "tipo-contacto"
+        );
+
+      const contactoInput =
+        document.getElementById(
+          "cliente-contacto"
+        );
+
+      const contactoAyuda =
+        document.getElementById(
+          "contacto-ayuda"
+        );
+
+
+      tipoContactoInput.addEventListener(
+        "change",
+        () => {
+
+          const esCelular =
+            tipoContactoInput.value === "celular";
+
+
+          // Limpiar el campo al cambiar de opción
+          contactoInput.value = "";
+
+
+          // Cambiar tipo de entrada
+          contactoInput.type =
+            esCelular
+              ? "tel"
+              : "text";
+
+
+          // Ajustar longitud permitida
+          contactoInput.maxLength =
+            esCelular
+              ? 9
+              : 50;
+
+
+          // Cambiar placeholder
+          contactoInput.placeholder =
+            esCelular
+              ? "📱 Número de celular (9 dígitos)"
+              : "💬 Usuario de WhatsApp";
+
+
+          // Autocompletado
+          contactoInput.autocomplete =
+            esCelular
+              ? "tel"
+              : "off";
+
+
+          // Texto de ayuda
+          contactoAyuda.textContent =
+            esCelular
+              ? "Ingresa tu número de celular de 9 dígitos."
+              : "Escribe tu usuario de WhatsApp, con o sin @.";
+
+        }
+      );
 
 
       // =================================================
@@ -536,28 +637,36 @@ const polygon =
 
       document
         .getElementById(
-          'continuar-pago'
+          "continuar-pago"
         )
         .onclick = () => {
 
 
           // -------------------------------------------
-          // DATOS CLIENTE
+          // DATOS DEL CLIENTE
           // -------------------------------------------
 
           const nombre =
             document
               .getElementById(
-                'cliente-nombre'
+                "cliente-nombre"
               )
               .value
               .trim();
 
 
-          const celular =
+          const tipoContacto =
             document
               .getElementById(
-                'cliente-celular'
+                "tipo-contacto"
+              )
+              .value;
+
+
+          let contacto =
+            document
+              .getElementById(
+                "cliente-contacto"
               )
               .value
               .trim();
@@ -566,28 +675,114 @@ const polygon =
           const referencia =
             document
               .getElementById(
-                'cliente-referencia'
+                "cliente-referencia"
               )
               .value
               .trim();
 
 
           // -------------------------------------------
-          // VALIDAR
+          // NORMALIZAR CONTACTO
           // -------------------------------------------
 
           if (
-            !nombre ||
-            !celular
+            tipoContacto === "whatsapp"
           ) {
 
+            // Permitir que el usuario escriba @usuario
+            // o solamente usuario.
+
+            contacto =
+              contacto.replace(
+                /^@+/,
+                ""
+              );
+
+          }
+
+
+          // -------------------------------------------
+          // VALIDAR NOMBRE
+          // -------------------------------------------
+
+          if (!nombre) {
+
             showToast(
-              "⚠️ Ingresa tu nombre y número de celular.",
+              "⚠️ Ingresa tu nombre completo.",
               "error"
             );
 
             return;
           }
+
+
+          // -------------------------------------------
+          // VALIDAR CONTACTO VACÍO
+          // -------------------------------------------
+
+          if (!contacto) {
+
+            showToast(
+              tipoContacto === "celular"
+                ? "⚠️ Ingresa tu número de celular."
+                : "⚠️ Ingresa tu usuario de WhatsApp.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          // -------------------------------------------
+          // VALIDAR NÚMERO DE CELULAR
+          // -------------------------------------------
+
+          if (
+            tipoContacto === "celular" &&
+            !/^\d{9}$/.test(contacto)
+          ) {
+
+            showToast(
+              "⚠️ El celular debe tener 9 dígitos.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          // -------------------------------------------
+          // VALIDAR USUARIO DE WHATSAPP
+          // -------------------------------------------
+
+          if (
+            tipoContacto === "whatsapp" &&
+            !/^[a-zA-Z0-9._]{3,50}$/.test(contacto)
+          ) {
+
+            showToast(
+              "⚠️ Revisa el usuario de WhatsApp.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          // -------------------------------------------
+          // COMPATIBILIDAD CON EL CAMPO ANTIGUO
+          // -------------------------------------------
+
+          // Si el cliente proporciona un celular,
+          // lo guardamos también en "celular".
+          //
+          // Si proporciona un usuario, no inventamos
+          // un número telefónico.
+
+          const celular =
+            tipoContacto === "celular"
+              ? contacto
+              : "";
 
 
           // =================================================
@@ -621,6 +816,7 @@ const polygon =
                     ""
 
                 };
+
               }
             );
 
@@ -635,7 +831,13 @@ const polygon =
 
               nombre,
 
+              // Campo antiguo, por compatibilidad.
               celular,
+
+              // Nuevos campos.
+              tipoContacto,
+
+              contacto,
 
               referencia,
 
@@ -660,6 +862,10 @@ const polygon =
           );
 
 
+          // =================================================
+          // REGISTRO EN CONSOLA
+          // =================================================
+
           console.log(
             "📦 Pedido creado:",
             qrContainer.dataset.pedidoId
@@ -670,9 +876,19 @@ const polygon =
             creadoEn
           );
 
+          console.log(
+            "📞 Tipo de contacto:",
+            tipoContacto
+          );
+
+          console.log(
+            "💬 Contacto:",
+            contacto
+          );
+
 
           // =================================================
-          // MOSTRAR QR
+          // MOSTRAR QR Y RESUMEN DEL PEDIDO
           // =================================================
 
           qrContainer.innerHTML = `
@@ -687,8 +903,22 @@ const polygon =
             </p>
 
             <p>
-              <b>Celular:</b>
-              ${celular}
+              <b>Medio de contacto:</b>
+              ${
+                tipoContacto === "celular"
+                  ? "Celular"
+                  : "Usuario de WhatsApp"
+              }
+            </p>
+
+            <p>
+              <b>Contacto:</b>
+              ${contacto}
+            </p>
+
+            <p>
+              <b>Referencia:</b>
+              ${referencia || "Sin referencia"}
             </p>
 
             <p>
@@ -724,7 +954,7 @@ const polygon =
           // CARGAR VERIFICADOR
           // =================================================
 
-          // Evitar cargarlo dos veces
+          // Evitar cargarlo dos veces.
 
           if (
             document.getElementById(
@@ -738,7 +968,7 @@ const polygon =
 
           const script =
             document.createElement(
-              'script'
+              "script"
             );
 
 
@@ -778,8 +1008,8 @@ const polygon =
         };
 
     }
-  );
 
+  );
 
   // =====================================================
   // FIN
