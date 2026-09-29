@@ -2712,33 +2712,43 @@ text =
 
       } catch (err) {
 
-        // ===================================================
-        // === ERROR
-        // ===================================================
+      // ===================================================
+// === ERROR
+// ===================================================
 
-        intentosFallidos++;
+intentosFallidos++;
 
-        console.error(
-          "❌ Error en verificación:",
-          err
-        );
+console.error(
+  "❌ Error en verificación:",
+  err
+);
 
+statusDiv.textContent =
+  "❌ " +
+  err.message;
 
-        statusDiv.textContent =
-          "❌ " +
-          err.message;
+showToast(
+  "❌ " +
+  err.message,
+  "error"
+);
 
+// ===================================================
+// === CONTROL DEL BOTÓN DE VERIFICACIÓN
+// ===================================================
 
-        showToast(
-          "❌ " +
-          err.message,
-          "error"
-        );
+if (intentosFallidos >= 2) {
 
+  // Ocultar el botón después del segundo error
+  verifyBtn.hidden = true;
+  verifyBtn.disabled = true;
 
-        verifyBtn.disabled =
-          false;
+} else {
 
+  // Permitir un segundo intento
+  verifyBtn.disabled = false;
+
+}
 
         // ===================================================
         // === SEGUNDO INTENTO
